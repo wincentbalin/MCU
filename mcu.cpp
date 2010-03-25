@@ -20,8 +20,17 @@
 #include <getopt.h>
 
 
+// Version of the program
 #define VERSION 0.1
-#define AUTO_THRES 5000
+
+// Initial silence threshold
+#define SILENCE_THRES 5000
+
+// Percent of highest value to set silence_thres to
+#define AUTO_THRES 30
+
+// Frequency threshold (in percent)
+#define FREQ_THRES 60
 
 
 using namespace std;
@@ -60,7 +69,99 @@ print_help(void)
 
 int main(int argc, char** argv)
 {
-    print_help();
+    // Configuration variables
+    int auto_thres = AUTO_THRES;
+    bool max_level = false;
+    bool verbose = true;
+    int silence_thres = SILENCE_THRES;
+    int device_number = 0;
+    bool list_devices = false;
+
+    // Getopt variables
+    int ch, option_index;
+    static struct option long_options[] =
+    {
+        {"auto-thres",   0, 0, 'a'},
+        {"device",       1, 0, 'd'},
+        {"list-devices", 0, 0, 'l'},
+        {"help",         0, 0, 'h'},
+        {"max-level",    0, 0, 'm'},
+        {"silent",       0, 0, 's'},
+        {"threshold",    1, 0, 't'},
+        {"version",      0, 0, 'v'},
+        { 0,             0, 0,  0 }
+    };
+
+    // Process command line arguments
+    while(true)
+    {
+        ch = getopt_long(argc, argv, "a:d:lhmst:v", long_options, &option_index);
+
+        if(ch == -1)
+            break;
+
+        switch(ch)
+        {
+            // Auto threshold
+            case 'a':
+                auto_thres = atoi(optarg);
+                break;
+
+            // Device (number)
+            case 'd':
+                device_number = atoi(optarg);
+                break;
+
+            // List devices
+            case 'l':
+                list_devices = true;
+                break;
+
+            // Help
+            case 'h':
+                print_help();
+                exit(EXIT_SUCCESS);
+                break;
+
+            // Maximal level
+            case 'm':
+                max_level = true;
+                break;
+
+            // Silent
+            case 's':
+                verbose = false;
+                break;
+
+            // Threshold
+            case 't':
+                auto_thres = 0;
+                silence_thres = atoi(optarg);
+                break;
+
+            // Version
+            case 'v':
+                print_version();
+                exit(EXIT_SUCCESS);
+                break;
+
+            // Unknown options
+            default:
+                print_help();
+                exit(EXIT_FAILURE);
+                break;
+        }
+    }
+
+    // Print version
+    if(verbose)
+    {
+        print_version();
+        cerr << endl;
+    }
+
+
+
 
     return EXIT_SUCCESS;
 }

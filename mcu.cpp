@@ -8,6 +8,9 @@
     Copyright (c) 2010 Wincent Balin
 
     Based heavily upon dab.c and dmsb.c by Joseph Battaglia.
+
+    As the mentioned above inspirations the program is licensed
+    under the MIT License. See LICENSE file for further information.
 */
 
 #include "mcu.hpp"

@@ -67,6 +67,20 @@ typedef int16_t sample_t;
 // Input data buffer
 vector<sample_t> buffer;
 
+// Current buffer index
+unsigned int buffer_index = 0;
+
+
+
+void
+iata_parser::parse(string& bitstring, string& result)
+{
+}
+
+void
+aba_parser::parse(string& bitstring, string& result)
+{
+}
 
 
 

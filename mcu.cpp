@@ -9,7 +9,10 @@
 
     Based heavily upon dab.c and dmsb.c by Joseph Battaglia.
 
-    As the mentioned above inspirations the program is licensed
+    Uses RtAudio by Gary P. Scavone for audio input. Input routines
+    are based on RtAudio examples.
+
+    As both of the mentioned above inspirations the program is licensed
     under the MIT License. See LICENSE file for further information.
 */
 

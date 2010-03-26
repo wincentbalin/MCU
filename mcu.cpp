@@ -230,6 +230,23 @@ print_max_level(unsigned int sample_rate)
     cout << endl;
 }
 
+sample_t
+evaluate_max(void)
+{
+    sample_t max = 0;
+
+    for(unsigned int i = 0; i < buffer.size(); i++)
+    {
+        sample_t value = buffer[i];
+        if(value > max)
+        {
+            max = value;
+        }
+    }
+
+    return max;
+}
+
 void
 cleanup(RtAudio& a)
 {
@@ -396,6 +413,26 @@ main(int argc, char** argv)
         cleanup(adc);
         exit(EXIT_SUCCESS);
     }
+
+    // Sanity check for silence threshold
+    if(silence_thres == 0)
+    {
+        cerr << "Error: Invalid silence threshold!" << endl;
+        cleanup(adc);
+        exit(EXIT_FAILURE);
+    }
+
+    //
+    //! TODO
+    //
+
+    // Automatically set threshold if requested
+    if(auto_thres > 0)
+    {
+        silence_thres = auto_thres * evaluate_max() / 100;
+    }
+
+
 
     // Stop and close audio stream
     cleanup(adc);

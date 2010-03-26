@@ -21,9 +21,20 @@
 
 #include <iostream>
 #include <map>
+#include <queue>
 
 #include <cstdlib>
 #include <getopt.h>
+
+
+// Platform-dependent sleep routines; taken from RtAudio example
+#if defined( __WINDOWS_ASIO__ ) || defined( __WINDOWS_DS__ )
+  #include <windows.h>
+  #define SLEEP( milliseconds ) Sleep( (DWORD) milliseconds )
+#else // Unix variants
+  #include <unistd.h>
+  #define SLEEP( milliseconds ) usleep( (unsigned long) (milliseconds * 1000.0) )
+#endif
 
 
 // Version of the program
@@ -38,6 +49,9 @@
 // Frequency threshold (in percent)
 #define FREQ_THRES 60
 
+// Seconds before termination of print_max_level()
+#define MAX_TERM 60
+
 
 using namespace std;
 
@@ -47,15 +61,12 @@ vector<RtAudio::DeviceInfo> devices;
 // List of original device indexes
 vector<int> device_indexes;
 
+// We use signed 16 bit value as a sample
+typedef int16_t sample_t;
+
 // Input data buffer
-struct input_data
-{
-    int16_t* buffer;
-    uint32_t buffer_bytes;
-    uint32_t total_frames;
-    uint32_t frame_counter;
-    uint32_t channels;
-};
+queue<sample_t> buffer;
+
 
 
 
@@ -163,32 +174,80 @@ print_devices(vector<RtAudio::DeviceInfo>& dev)
 
 int
 input(void* out_buffer, void* in_buffer, unsigned int n_buffer_frames,
-           double stream_time, RtAudioStreamStatus status, void *data)
+           double stream_time, RtAudioStreamStatus status, void* data)
 {
     (void) out_buffer;
     (void) stream_time;
-    (void) status;
+    (void) data;
 
-    struct input_data* in_data = (struct input_data*) data;
-
-    // Copy data to the allocated buffer
-    unsigned int frames = n_buffer_frames;
-
-    if(in_data->frame_counter + n_buffer_frames > in_data->total_frames)
+    // Check for audio input overflow
+    if(status == RTAUDIO_INPUT_OVERFLOW)
     {
-        frames = in_data->total_frames - in_data->frame_counter;
-        in_data->buffer_bytes = frames * in_data->channels * sizeof(int16_t);
+        cerr << "Audio input overflow!"<< endl;
+        return 2;
     }
 
-    uint32_t offset = in_data->frame_counter * in_data->channels;
-    memcpy(in_data->buffer + offset, in_buffer, in_data->buffer_bytes);
-    in_data->frame_counter += frames;
-
-    // If buffer overflown, return with unnormal value
-    if(in_data->frame_counter >= in_data->total_frames)
-        return 2;
+    // Copy audio input data to buffer
+    sample_t* src = (sample_t*) in_buffer;
+    for(unsigned int i = 0, ; i < n_buffer_frames; i++, src++)
+    {
+        buffer.push(*src);
+    }
 
     return 0;
+}
+
+void
+print_max_level(unsigned int sample_rate)
+{
+    cout << "Terminating after " << MAX_TERM << " seconds..." << endl;
+
+    // Calculate maximal level
+    sample_t last_level = 0;
+    sample_t level;
+    for(unsigned int i = 0; i < MAX_TERM * sample_rate; i++)
+    {
+        // Wait if needed
+        if(buffer.size() == 0)
+            SLEEP(100);
+
+        level = buffer.front();
+        buffer.pop();
+
+        // Make level value absolute
+        if(level < 0)
+        {
+            level = -level;
+        }
+
+        // If current level is a (local) maximum, print it
+        if(level > last_level)
+        {
+            cout << "Maximum level: " << level << '\r';
+            last_level = level;
+        }
+    }
+
+    cout << endl;
+}
+
+void
+cleanup(RtAudio& a)
+{
+    // Stop audio stream
+    try
+    {
+        a.stopStream();
+    }
+    catch(RtError& e)
+    {
+        cerr << endl << e.getMessage() << endl;
+        exit(EXIT_FAILURE);
+    }
+
+    // Close audio stream
+    if(a.isStreamOpen())
+        a.closeStream();
 }
 
 
@@ -312,27 +371,35 @@ main(int argc, char** argv)
 
     // Specify parameters of the audio stream
     unsigned int buffer_frames = 512;
-    unsigned int fs = 192000;
+    unsigned int sample_rate = 192000;
     RtAudio::StreamParameters input_params;
     input_params.deviceId = device_indexes[device_number];
     input_params.nChannels = 1;
     input_params.firstChannel = 0;
 
-    // Define data buffer
-    struct input_data data;
-    data.buffer = 0;
-
-    // Open audio stream
+    // Open and start audio stream
     try
     {
-        adc.openStream(NULL, &input_params, RTAUDIO_SINT16, fs,
-                       &buffer_frames, &input, (void *) &data);
+        adc.openStream(NULL, &input_params, RTAUDIO_SINT16,
+                       sample_rate, &buffer_frames, &input, NULL);
+        adc.startStream();
     }
     catch(RtError& e)
     {
         cerr << endl << e.getMessage() << endl;
-        exit(EXIT_FAILURE);
+        cleanup(adc);
     }
+
+    // If calculating maximal level is requested, do so and exit
+    if(max_level)
+    {
+        print_max_level(sample_rate);
+        cleanup(adc);
+        exit(EXIT_SUCCESS);
+    }
+
+    // Stop and close audio stream
+    cleanup(adc);
 
     return EXIT_SUCCESS;
 }

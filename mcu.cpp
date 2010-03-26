@@ -41,6 +41,9 @@ using namespace std;
 // List of devices
 vector<RtAudio::DeviceInfo> devices;
 
+// List of original device indexes
+vector<int> device_indexes;
+
 
 void
 print_version(void)
@@ -74,7 +77,7 @@ print_help(void)
 }
 
 void
-list_devices(vector<RtAudio::DeviceInfo>& dev)
+list_devices(vector<RtAudio::DeviceInfo>& dev, vector<int>& index)
 {
     // Audio interface
     RtAudio audio;
@@ -102,6 +105,7 @@ list_devices(vector<RtAudio::DeviceInfo>& dev)
 
         // Add new audio input device
         dev.push_back(info);
+        index.push_back(i);
     }
 }
 
@@ -249,7 +253,7 @@ main(int argc, char** argv)
     }
 
     // Get list of device
-    list_devices(devices);
+    list_devices(devices, device_indexes);
 
     // If requested, print list of devices and exit
     if(list_input_devices)

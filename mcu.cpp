@@ -208,7 +208,7 @@ print_max_level(unsigned int sample_rate)
     for(unsigned int i = 0; i < MAX_TERM * sample_rate; i++)
     {
         // Wait if needed
-        if(buffer.size() == 0)
+        if(buffer.size() <= i)
             SLEEP(100);
 
         level = buffer[i];

@@ -432,7 +432,12 @@ main(int argc, char** argv)
         silence_thres = auto_thres * evaluate_max() / 100;
     }
 
-
+    // Print silence threshold
+    if(verbose)
+    {
+        cerr << "Silence threshold: " << silence_thres
+             << " (" << auto_thres << "% of max)" << endl;
+    }
 
     // Stop and close audio stream
     cleanup(adc);

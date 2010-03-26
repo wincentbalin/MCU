@@ -15,7 +15,10 @@
 
 #include "mcu.hpp"
 #include "RtAudio.h"
+
 #include <iostream>
+#include <map>
+
 #include <cstdlib>
 #include <getopt.h>
 
@@ -34,6 +37,9 @@
 
 
 using namespace std;
+
+// List of devices
+vector<RtAudio::DeviceInfo> devices;
 
 
 void
@@ -67,15 +73,86 @@ print_help(void)
          << endl;
 }
 
-int main(int argc, char** argv)
+void
+list_devices(vector<RtAudio::DeviceInfo>& dev)
 {
+    // Audio interface
+    RtAudio audio;
+
+    // Get devices
+    for(unsigned int i = 0; i < audio.getDeviceCount(); i++)
+    {
+        RtAudio::DeviceInfo info = audio.getDeviceInfo(i);
+
+        // If device unprobed, go to the next one
+        if(!info.probed)
+            continue;
+
+        // If no input channels, skip this device
+        if(info.inputChannels < 1)
+            continue;
+
+        // If no natively supported formats, skip this device
+        if(info.nativeFormats == 0)
+            continue;
+
+        // If no sample rates supported, skip this device
+        if(info.sampleRates.size() < 1)
+            continue;
+
+        // Add new audio input device
+        dev.push_back(info);
+    }
+}
+
+void
+print_devices(vector<RtAudio::DeviceInfo>& dev)
+{
+    // API map
+    map<int, string> api_map;
+
+    // Initialize API map
+    api_map[RtAudio::MACOSX_CORE] = "OS-X Core Audio";
+    api_map[RtAudio::WINDOWS_ASIO] = "Windows ASIO";
+    api_map[RtAudio::WINDOWS_DS] = "Windows Direct Sound";
+    api_map[RtAudio::UNIX_JACK] = "Jack Client";
+    api_map[RtAudio::LINUX_ALSA] = "Linux ALSA";
+    api_map[RtAudio::LINUX_OSS] = "Linux OSS";
+    api_map[RtAudio::RTAUDIO_DUMMY] = "RtAudio Dummy";
+
+    // Audio interface
+    RtAudio audio;
+
+    // Print current API
+    cerr << "Current API: " << api_map[audio.getCurrentApi()] << endl;
+
+    // Print every device
+    for(unsigned int i = 0; i < dev.size(); i++)
+    {
+        RtAudio::DeviceInfo info = dev[i];
+
+        // Print number of the device
+        cerr.width(3);
+        cerr << i << " "
+             << info.name
+             << (info.isDefaultInput ? " (Default input device)" : "") << endl;
+    }
+}
+
+
+int
+main(int argc, char** argv)
+{
+    // Sound input
+    RtAudio adc;
+
     // Configuration variables
     int auto_thres = AUTO_THRES;
     bool max_level = false;
     bool verbose = true;
     int silence_thres = SILENCE_THRES;
+    bool list_input_devices = false;
     int device_number = 0;
-    bool list_devices = false;
 
     // Getopt variables
     int ch, option_index;
@@ -114,7 +191,7 @@ int main(int argc, char** argv)
 
             // List devices
             case 'l':
-                list_devices = true;
+                list_input_devices = true;
                 break;
 
             // Help
@@ -160,8 +237,26 @@ int main(int argc, char** argv)
         cerr << endl;
     }
 
+    // Make RtAudio part verbose too
+    if(verbose)
+        adc.showWarnings(true);
 
+    // If no sound devices found, exit
+    if(adc.getDeviceCount() < 1)
+    {
+        cerr << "No audio devices found!" << endl;
+        exit(EXIT_FAILURE);
+    }
 
+    // Get list of device
+    list_devices(devices);
+
+    // If requested, print list of devices and exit
+    if(list_input_devices)
+    {
+        print_devices(devices);
+        exit(EXIT_SUCCESS);
+    }
 
     return EXIT_SUCCESS;
 }

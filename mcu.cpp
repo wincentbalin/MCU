@@ -99,6 +99,10 @@ list_devices(vector<RtAudio::DeviceInfo>& dev, vector<int>& index)
         if(info.nativeFormats == 0)
             continue;
 
+        // We need S16 format. If unavailable, skip this device
+        if(!(info.nativeFormats & RTAUDIO_SINT16))
+            continue;
+
         // If no sample rates supported, skip this device
         if(info.sampleRates.size() < 1)
             continue;

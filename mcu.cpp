@@ -47,6 +47,17 @@ vector<RtAudio::DeviceInfo> devices;
 // List of original device indexes
 vector<int> device_indexes;
 
+// Input data buffer
+struct input_data
+{
+    int16_t* buffer;
+    uint32_t buffer_bytes;
+    uint32_t total_frames;
+    uint32_t frame_counter;
+    uint32_t channels;
+};
+
+
 
 void
 print_version(void)
@@ -148,6 +159,36 @@ print_devices(vector<RtAudio::DeviceInfo>& dev)
              << info.name
              << (info.isDefaultInput ? " (Default input device)" : "") << endl;
     }
+}
+
+int
+input(void* out_buffer, void* in_buffer, unsigned int n_buffer_frames,
+           double stream_time, RtAudioStreamStatus status, void *data)
+{
+    (void) out_buffer;
+    (void) stream_time;
+    (void) status;
+
+    struct input_data* in_data = (struct input_data*) data;
+
+    // Copy data to the allocated buffer
+    unsigned int frames = n_buffer_frames;
+
+    if(in_data->frame_counter + n_buffer_frames > in_data->total_frames)
+    {
+        frames = in_data->total_frames - in_data->frame_counter;
+        in_data->buffer_bytes = frames * in_data->channels * sizeof(int16_t);
+    }
+
+    uint32_t offset = in_data->frame_counter * in_data->channels;
+    memcpy(in_data->buffer + offset, in_buffer, in_data->buffer_bytes);
+    in_data->frame_counter += frames;
+
+    // If buffer overflown, return with unnormal value
+    if(in_data->frame_counter >= in_data->total_frames)
+        return 2;
+
+    return 0;
 }
 
 
@@ -267,6 +308,30 @@ main(int argc, char** argv)
     {
         print_devices(devices);
         exit(EXIT_SUCCESS);
+    }
+
+    // Specify parameters of the audio stream
+    unsigned int buffer_frames = 512;
+    unsigned int fs = 192000;
+    RtAudio::StreamParameters input_params;
+    input_params.deviceId = device_indexes[device_number];
+    input_params.nChannels = 1;
+    input_params.firstChannel = 0;
+
+    // Define data buffer
+    struct input_data data;
+    data.buffer = 0;
+
+    // Open audio stream
+    try
+    {
+        adc.openStream(NULL, &input_params, RTAUDIO_SINT16, fs,
+                       &buffer_frames, &input, (void *) &data);
+    }
+    catch(RtError& e)
+    {
+        cerr << endl << e.getMessage() << endl;
+        exit(EXIT_FAILURE);
     }
 
     return EXIT_SUCCESS;

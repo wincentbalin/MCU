@@ -244,6 +244,36 @@ print_max_level(unsigned int sample_rate)
     cout << endl;
 }
 
+void
+silence_pause(sample_t threshold)
+{
+    while(true)
+    {
+        // Wait till buffer has enough data
+        while(buffer.size() <= buffer_index)
+        {
+            SLEEP(100);
+        }
+
+        for(; buffer_index < buffer.size(); buffer_index++)
+        {
+            // On first sample with absolute value
+            // greater than threshold bail out
+            sample_t sample = buffer[buffer_index];
+
+            if(sample < 0)
+            {
+                sample = - sample;
+            }
+
+            if(sample > threshold)
+            {
+                return;
+            }
+        }
+    }
+}
+
 sample_t
 evaluate_max(void)
 {
@@ -291,7 +321,7 @@ main(int argc, char** argv)
     int auto_thres = AUTO_THRES;
     bool max_level = false;
     bool verbose = true;
-    int silence_thres = SILENCE_THRES;
+    sample_t silence_thres = SILENCE_THRES;
     bool list_input_devices = false;
     int device_number = 0;
 
@@ -436,9 +466,16 @@ main(int argc, char** argv)
         exit(EXIT_FAILURE);
     }
 
-    //
+    // Wait for a sample
+    if(verbose)
+    {
+        cerr << "Waiting for sample..." << endl;
+    }
+
+    silence_pause(silence_thres);
+
     //! TODO
-    //
+
 
     // Automatically set threshold if requested
     if(auto_thres > 0)

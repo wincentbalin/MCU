@@ -21,7 +21,7 @@
 
 #include <iostream>
 #include <map>
-#include <queue>
+#include <vector>
 
 #include <cstdlib>
 #include <getopt.h>
@@ -65,7 +65,7 @@ vector<int> device_indexes;
 typedef int16_t sample_t;
 
 // Input data buffer
-queue<sample_t> buffer;
+vector<sample_t> buffer;
 
 
 
@@ -191,7 +191,7 @@ input(void* out_buffer, void* in_buffer, unsigned int n_buffer_frames,
     sample_t* src = (sample_t*) in_buffer;
     for(unsigned int i = 0, ; i < n_buffer_frames; i++, src++)
     {
-        buffer.push(*src);
+        buffer.push_back(*src);
     }
 
     return 0;
@@ -211,8 +211,7 @@ print_max_level(unsigned int sample_rate)
         if(buffer.size() == 0)
             SLEEP(100);
 
-        level = buffer.front();
-        buffer.pop();
+        level = buffer[i];
 
         // Make level value absolute
         if(level < 0)

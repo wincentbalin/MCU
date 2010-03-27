@@ -518,7 +518,8 @@ main(int argc, char** argv)
     // Specify parameters of the audio stream
     unsigned int buffer_frames = 512;
     unsigned int device_index = device_indexes[device_number];
-    unsigned int sample_rate = greatest_sample_rate(device_index);
+    unsigned int sample_rate = 44100; // Default value if nothing else found
+    sample_rate = greatest_sample_rate(device_index);
     RtAudio::StreamParameters input_params;
     input_params.deviceId = device_index;
     input_params.nChannels = 1;

@@ -58,6 +58,9 @@
 
 using namespace std;
 
+// Sound input
+RtAudio adc;
+
 // List of devices
 vector<RtAudio::DeviceInfo> devices;
 
@@ -127,13 +130,10 @@ print_help(void)
 void
 list_devices(vector<RtAudio::DeviceInfo>& dev, vector<int>& index)
 {
-    // Audio interface
-    RtAudio audio;
-
     // Get devices
-    for(unsigned int i = 0; i < audio.getDeviceCount(); i++)
+    for(unsigned int i = 0; i < adc.getDeviceCount(); i++)
     {
-        RtAudio::DeviceInfo info = audio.getDeviceInfo(i);
+        RtAudio::DeviceInfo info = adc.getDeviceInfo(i);
 
         // If device unprobed, go to the next one
         if(!info.probed)
@@ -176,11 +176,8 @@ print_devices(vector<RtAudio::DeviceInfo>& dev)
     api_map[RtAudio::LINUX_OSS] = "Linux OSS";
     api_map[RtAudio::RTAUDIO_DUMMY] = "RtAudio Dummy";
 
-    // Audio interface
-    RtAudio audio;
-
     // Print current API
-    cerr << "Current API: " << api_map[audio.getCurrentApi()] << endl;
+    cerr << "Current API: " << api_map[adc.getCurrentApi()] << endl;
 
     // Print every device
     for(unsigned int i = 0; i < dev.size(); i++)
@@ -196,11 +193,11 @@ print_devices(vector<RtAudio::DeviceInfo>& dev)
 }
 
 unsigned int
-greatest_sample_rate(RtAudio& audio, int device_index)
+greatest_sample_rate(int device_index)
 {
     unsigned int max_rate = 0;
 
-    RtAudio::DeviceInfo info = audio.getDeviceInfo(device_index);
+    RtAudio::DeviceInfo info = adc.getDeviceInfo(device_index);
 
     for(unsigned int i = 0; i < info.sampleRates.size(); i++)
     {
@@ -384,12 +381,12 @@ evaluate_max(void)
 }
 
 void
-cleanup(RtAudio& a)
+cleanup(void)
 {
     // Stop audio stream
     try
     {
-        a.stopStream();
+        adc.stopStream();
     }
     catch(RtError& e)
     {
@@ -398,17 +395,14 @@ cleanup(RtAudio& a)
     }
 
     // Close audio stream
-    if(a.isStreamOpen())
-        a.closeStream();
+    if(adc.isStreamOpen())
+        adc.closeStream();
 }
 
 
 int
 main(int argc, char** argv)
 {
-    // Sound input
-    RtAudio adc;
-
     // Configuration variables
     int auto_thres = AUTO_THRES;
     bool max_level = false;
@@ -524,7 +518,7 @@ main(int argc, char** argv)
     // Specify parameters of the audio stream
     unsigned int buffer_frames = 512;
     unsigned int device_index = device_indexes[device_number];
-    unsigned int sample_rate = greatest_sample_rate(adc, device_index);
+    unsigned int sample_rate = greatest_sample_rate(device_index);
     RtAudio::StreamParameters input_params;
     input_params.deviceId = device_index;
     input_params.nChannels = 1;
@@ -540,14 +534,14 @@ main(int argc, char** argv)
     catch(RtError& e)
     {
         cerr << endl << e.getMessage() << endl;
-        cleanup(adc);
+        cleanup();
     }
 
     // If calculating maximal level is requested, do so and exit
     if(max_level)
     {
         print_max_level(sample_rate);
-        cleanup(adc);
+        cleanup();
         exit(EXIT_SUCCESS);
     }
 
@@ -555,7 +549,7 @@ main(int argc, char** argv)
     if(silence_thres == 0)
     {
         cerr << "Error: Invalid silence threshold!" << endl;
-        cleanup(adc);
+        cleanup();
         exit(EXIT_FAILURE);
     }
 
@@ -586,7 +580,7 @@ main(int argc, char** argv)
     }
 
     // Stop and close audio stream
-    cleanup(adc);
+    cleanup();
 
     return EXIT_SUCCESS;
 }

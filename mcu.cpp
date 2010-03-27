@@ -104,8 +104,7 @@ print_version(void)
 {
     cerr << "mcu - Magnetic stripe Card Utility" << endl
          << "Version " << VERSION << endl
-         << "Copyright (c) 2010 Wincent Balin" << endl
-         << endl;
+         << "Copyright (c) 2010 Wincent Balin" << endl;
 }
 
 void
@@ -366,6 +365,88 @@ get_dsp(unsigned int sample_rate)
     }
 }
 
+void cleanup(void); // Workaround!
+void
+decode_aiken_biphase(vector<sample_t>& input)
+{
+    const unsigned int input_size = input.size();
+
+    // Make all values absolute
+    for(unsigned int i = 0; i < input_size; i++)
+    {
+        if(input[i] < 0)
+        {
+            input[i] = -input[i];
+        }
+    }
+
+    // Search for peaks
+    unsigned int peak_index = 0;
+    unsigned int old_peak_index = 0;
+    vector<unsigned int> peaks;
+    for(unsigned int i = 0; i < input_size; )
+    {
+        // Store peak index
+        old_peak_index = peak_index;
+
+        // Search for the next peak
+        for(; i < input_size && input[i] <= silence_thres; i++)
+        {
+        }
+
+        peak_index = 0;
+
+        for(; i < input_size && input[i] > silence_thres; i++)
+        {
+            if(input[i] > input[peak_index])
+            {
+                peak_index = i;
+            }
+        }
+
+        unsigned int peak_index_diff = peak_index - old_peak_index;
+        if(peak_index_diff > 0)
+        {
+            peaks.push_back(peak_index_diff);
+        }
+    }
+
+    // If less than two peaks found, something went wrong
+    if(peaks.size() < 2)
+    {
+        cerr << "No bits detected!" << endl;
+        cleanup();
+        exit(EXIT_FAILURE);
+    }
+
+    // Decode aiken bi-phase (decode bits based on intervals between peaks)
+    sample_t zero = peaks[2];
+    const unsigned int peaks_size = peaks.size();
+    for(unsigned int i = 2; i < peaks_size - 1; i++)
+    {
+        unsigned int interval0 = (FREQ_THRES * zero) / 100;
+        unsigned int interval1 = interval0 / 2;
+
+        if(peaks[i] < ((zero / 2) + interval1) &&
+           peaks[i] > ((zero / 2) - interval1))
+        {
+            if(peaks[i + 1] < ((zero / 2) + interval1) &&
+               peaks[i + 1] > ((zero / 2) - interval1))
+            {
+                bitstring.push_back('1');
+                zero = peaks[i] * 2;
+                i++;
+            }
+        }
+        else if(peaks[i] < (zero + interval0) &&
+                peaks[i] > (zero - interval0))
+        {
+            bitstring.push_back('0');
+            zero = peaks[i];
+        }
+    }
+}
+
 sample_t
 evaluate_max(void)
 {
@@ -566,8 +647,21 @@ main(int argc, char** argv)
 
 
     // Get samples
-    get_dsp(sample_rate, silence_thres);
+    get_dsp(sample_rate);
 
+    // Decode result
+    unsigned int samples = sample_end - sample_start;
+    vector<sample_t> sample_buffer(samples);
+    copy(buffer.begin() + sample_start,
+         buffer.begin() + sample_end,
+         back_inserter(sample_buffer));
+    decode_aiken_biphase(sample_buffer);
+
+    // Print bit string if needed
+    if(verbose)
+    {
+        cout << "Bit string: " << bitstring << endl;
+    }
 
     // Automatically set threshold if requested
     if(auto_thres > 0)

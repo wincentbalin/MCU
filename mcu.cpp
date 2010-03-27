@@ -58,6 +58,9 @@
 
 using namespace std;
 
+// We use signed 16 bit value as a sample
+typedef int16_t sample_t;
+
 // Sound input
 RtAudio adc;
 
@@ -66,9 +69,6 @@ vector<RtAudio::DeviceInfo> devices;
 
 // List of original device indexes
 vector<int> device_indexes;
-
-// We use signed 16 bit value as a sample
-typedef int16_t sample_t;
 
 // Input data buffer
 vector<sample_t> buffer;
@@ -82,6 +82,9 @@ unsigned int sample_end;
 
 // String of bits
 string bitstring;
+
+// Silence threshold
+sample_t silence_thres = SILENCE_THRES;
 
 
 void
@@ -271,7 +274,7 @@ print_max_level(unsigned int sample_rate)
 }
 
 void
-silence_pause(sample_t threshold)
+silence_pause()
 {
     while(true)
     {
@@ -292,7 +295,7 @@ silence_pause(sample_t threshold)
                 sample = -sample;
             }
 
-            if(sample > threshold)
+            if(sample > silence_thres)
             {
                 return;
             }
@@ -301,7 +304,7 @@ silence_pause(sample_t threshold)
 }
 
 void
-get_dsp(unsigned int sample_rate, int silence_thres)
+get_dsp(unsigned int sample_rate)
 {
     // Set start of the sample
     sample_start = buffer_index;
@@ -407,7 +410,6 @@ main(int argc, char** argv)
     int auto_thres = AUTO_THRES;
     bool max_level = false;
     bool verbose = true;
-    sample_t silence_thres = SILENCE_THRES;
     bool list_input_devices = false;
     int device_number = 0;
 
@@ -560,7 +562,7 @@ main(int argc, char** argv)
         cerr << "Waiting for sample..." << endl;
     }
 
-    silence_pause(silence_thres);
+    silence_pause();
 
 
     // Get samples

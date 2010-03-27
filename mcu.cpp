@@ -58,6 +58,7 @@
 
 using namespace std;
 
+
 // We use signed 16 bit value as a sample
 typedef int16_t sample_t;
 
@@ -273,7 +274,7 @@ print_max_level(unsigned int sample_rate)
 }
 
 void
-silence_pause()
+silence_pause(void)
 {
     while(true)
     {

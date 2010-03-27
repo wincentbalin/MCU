@@ -52,6 +52,9 @@
 // Seconds before termination of print_max_level()
 #define MAX_TERM 60
 
+// Silence interval after sample (in milliseconds)
+#define END_LENGTH 200
+
 
 using namespace std;
 
@@ -70,6 +73,12 @@ vector<sample_t> buffer;
 // Current buffer index
 unsigned int buffer_index = 0;
 
+// Start and end index of sample
+unsigned int sample_start;
+unsigned int sample_end;
+
+// String of bits
+string bitstring;
 
 
 void
@@ -263,13 +272,76 @@ silence_pause(sample_t threshold)
 
             if(sample < 0)
             {
-                sample = - sample;
+                sample = -sample;
             }
 
             if(sample > threshold)
             {
                 return;
             }
+        }
+    }
+}
+
+void
+get_dsp(unsigned int sample_rate, int silence_thres)
+{
+    // Set start of the sample
+    sample_start = buffer_index;
+    sample_end = sample_start;
+
+    // Silence interval (in samples) indicating end of the sample
+    unsigned int silence_interval = (sample_rate * END_LENGTH) / 1000;
+
+    // Loop until the end of the sample is found
+    while(true)
+    {
+        // Find supposed end of sample (sample below threshold)
+        for(; buffer_index < buffer.size(); buffer_index++)
+        {
+            sample_t sample = buffer[buffer_index];
+
+            if(sample < 0)
+            {
+                sample = -sample;
+            }
+
+            if(sample < silence_thres)
+            {
+                sample_end = buffer_index;
+                break;
+            }
+        }
+
+        // Wait till buffer has enough data
+        while(buffer.size() - sample_end < silence_interval)
+        {
+            SLEEP(100);
+        }
+
+        // Check whether the suppoed end of the sample is the real one
+        unsigned int silence_counter;
+        for(silence_counter = 0;
+            silence_counter < silence_interval;
+            silence_counter++, buffer_index++)
+        {
+            sample_t sample = buffer[buffer_index];
+
+            if(sample < 0)
+            {
+                sample = -sample;
+            }
+
+            if(sample > silence_thres)
+            {
+                break;
+            }
+        }
+
+        // If silence continued longer than the allowed interval, end recording
+        if(silence_counter == silence_interval)
+        {
+            return;
         }
     }
 }
@@ -474,7 +546,9 @@ main(int argc, char** argv)
 
     silence_pause(silence_thres);
 
-    //! TODO
+
+    // Get samples
+    get_dsp(sample_rate, silence_thres);
 
 
     // Automatically set threshold if requested

@@ -195,6 +195,26 @@ print_devices(vector<RtAudio::DeviceInfo>& dev)
     }
 }
 
+unsigned int
+greatest_sample_rate(RtAudio& audio, int device_index)
+{
+    unsigned int max_rate = 0;
+
+    RtAudio::DeviceInfo info = audio.getDeviceInfo(device_index);
+
+    for(unsigned int i = 0; i < info.sampleRates.size(); i++)
+    {
+        unsigned int rate = info.sampleRates[i];
+
+        if(rate > max_rate)
+        {
+            max_rate = rate;
+        }
+    }
+
+    return max_rate;
+}
+
 int
 input(void* out_buffer, void* in_buffer, unsigned int n_buffer_frames,
            double stream_time, RtAudioStreamStatus status, void* data)
@@ -503,9 +523,10 @@ main(int argc, char** argv)
 
     // Specify parameters of the audio stream
     unsigned int buffer_frames = 512;
-    unsigned int sample_rate = 192000;
+    unsigned int device_index = device_indexes[device_number];
+    unsigned int sample_rate = greatest_sample_rate(adc, device_index);
     RtAudio::StreamParameters input_params;
-    input_params.deviceId = device_indexes[device_number];
+    input_params.deviceId = device_index;
     input_params.nChannels = 1;
     input_params.firstChannel = 0;
 

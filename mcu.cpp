@@ -366,7 +366,7 @@ get_dsp(unsigned int sample_rate)
     }
 }
 
-void cleanup(void); // Workaround!
+void cleanup(void); // Workaround
 void
 decode_aiken_biphase(vector<sample_t>& input)
 {
@@ -650,12 +650,15 @@ main(int argc, char** argv)
     // Get samples
     get_dsp(sample_rate);
 
-    // Decode result
+    // Extract samples
     unsigned int samples = sample_end - sample_start;
     vector<sample_t> sample_buffer(samples);
     copy(buffer.begin() + sample_start,
          buffer.begin() + sample_end,
          back_inserter(sample_buffer));
+
+
+    // Decode result
     decode_aiken_biphase(sample_buffer);
 
     // Print bit string if needed

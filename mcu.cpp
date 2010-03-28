@@ -97,7 +97,7 @@ magnetic_bitstring_parser::check_parity(string bits)
 
     unsigned int parity = 0;
 
-    for(unsigned int = 0; i < end_of_char_bits; i++)
+    for(unsigned int i = 0; i < end_of_char_bits; i++)
     {
         if(bits[i] == '1')
         {
@@ -105,11 +105,13 @@ magnetic_bitstring_parser::check_parity(string bits)
         }
     }
 
-    if('0' + parity % 2 != bitstring[end_of_char_bits])
+    if('0' + parity % 2 != (unsigned int) bitstring[end_of_char_bits])
     {
         // Parity mismatch
-        return;
+        return false;
     }
+
+    return true;
 }
 
 void

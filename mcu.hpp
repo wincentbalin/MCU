@@ -27,16 +27,18 @@ class magnetic_bitstring_parser
 {
 public:
     virtual ~magnetic_bitstring_parser(void) {  }
-    void parse(string& bitstring, string& result);
+    virtual void parse(string& bitstring, string& result);
     void set_name(char* parser_name) { name = parser_name; }
     string get_name(void) { return name; }
-    void set_char_length(unsigned int length) { char_length = length; }
-    void set_start_sentinel(char* sentinel) { start_sentinel = sentinel; }
-    void set_end_sentinel(char* sentinel) { end_sentinel = sentinel; }
-    bool check_parity(string bits);
+    void set_char_length(unsigned int length) { char_length = length; parity_bit = length - 1; }
+    void set_start_sentinel(char* sentinel) { assert(strlen(sentinel) == char_length); start_sentinel = sentinel; }
+    void set_end_sentinel(char* sentinel) { assert(strlen(sentinel) == char_length); end_sentinel = sentinel; }
+    unsigned char decode_char(string& bits);
+    bool check_char_parity(string& bits);
 protected:
-    string name;
+    string name; // of the encoding
     unsigned int char_length; // in bits
+    unsigned int parity_bit;
     string start_sentinel;
     string end_sentinel;
 };
@@ -55,7 +57,6 @@ public:
         set_end_sentinel("1111100");
     }
     virtual ~iata_parser(void) {  }
-    void parse(string& bitstring, string& result);
 };
 
 /**
@@ -72,7 +73,6 @@ public:
         set_end_sentinel("11111");
     }
     virtual ~aba_parser(void) {  }
-    void parse(string& bitstring, string& result);
 };
 
 

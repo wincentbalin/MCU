@@ -144,7 +144,7 @@ magnetic_bitstring_parser::parse(string& bitstring, string& result)
              bitstring.begin() + i + char_length,
              back_inserter(char_bits));
 
-        if(! check_char_parity(char_bits))
+        if(! check_parity(char_bits))
         {
             // Parity mismatch
             cerr << "Character parity mismatch!" << endl;
@@ -168,7 +168,7 @@ magnetic_bitstring_parser::parse(string& bitstring, string& result)
         lrc_bits.push_back('0' + lrc[i]);
     }
 
-    if(! check_char_parity(lrc_bits))
+    if(! check_parity(lrc_bits))
     {
         // Parity mismatch
         cerr << "Information parity mismatch!" << endl;
@@ -192,7 +192,7 @@ magnetic_bitstring_parser::decode_char(string& bits)
 }
 
 bool
-magnetic_bitstring_parser::check_char_parity(string& bits)
+magnetic_bitstring_parser::check_parity(string& bits)
 {
     unsigned int parity = 0;
 

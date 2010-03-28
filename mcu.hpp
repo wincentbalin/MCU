@@ -34,7 +34,7 @@ public:
     void set_start_sentinel(char* sentinel) { assert(strlen(sentinel) == char_length); start_sentinel = sentinel; }
     void set_end_sentinel(char* sentinel) { assert(strlen(sentinel) == char_length); end_sentinel = sentinel; }
     unsigned char decode_char(string& bits);
-    bool check_char_parity(string& bits);
+    bool check_parity(string& bits);
 protected:
     string name; // of the encoding
     unsigned int char_length; // in bits

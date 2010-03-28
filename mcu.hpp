@@ -11,7 +11,12 @@
 #ifndef MCU_HPP
 #define MCU_HPP
 
+#include <iostream>
 #include <string>
+
+// For assertions
+#include <cassert>
+#include <cstring>
 
 using namespace std;
 

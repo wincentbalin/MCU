@@ -19,10 +19,8 @@
 #include "mcu.hpp"
 #include "RtAudio.h"
 
-#include <iostream>
 #include <map>
 #include <vector>
-#include <string>
 #include <algorithm>
 
 #include <cstdlib>

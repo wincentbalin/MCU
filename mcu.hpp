@@ -13,12 +13,38 @@
 
 #include <iostream>
 #include <string>
+#include <vector>
+
+#include "RtAudio.h"
 
 // For assertions
 #include <cassert>
 #include <cstring>
 
 using namespace std;
+
+
+// Version of the program
+#define VERSION 0.1
+
+// Initial silence threshold
+#define SILENCE_THRES 5000
+
+// Percent of highest value to set silence_thres to
+#define AUTO_THRES 30
+
+// Frequency threshold (in percent)
+#define FREQ_THRES 60
+
+// Seconds before termination of print_max_level()
+#define MAX_TERM 60
+
+// Silence interval after sample (in milliseconds)
+#define END_LENGTH 200
+
+// We use signed 16 bit value as a sample
+typedef int16_t sample_t;
+
 
 /**
     Definition of the magnetic bitstring parser.
@@ -73,6 +99,50 @@ public:
         set_end_sentinel("11111");
     }
     virtual ~aba_parser(void) {  }
+};
+
+/**
+    Definition of the MCU.
+*/
+class mcu
+{
+public:
+    mcu(int argc, char** argv);
+    void run(void);
+private:
+    // Methods
+    void print_version(void);
+    void print_help(void);
+    void list_devices(vector<RtAudio::DeviceInfo>& dev, vector<int>& index);
+    void print_devices(vector<RtAudio::DeviceInfo>& dev);
+    unsigned int greatest_sample_rate(int device_index);
+    int input(void* out_buffer, void* in_buffer, unsigned int n_buffer_frames,
+              double stream_time, RtAudioStreamStatus status, void* data);
+    void print_max_level(unsigned int sample_rate);
+    void silence_pause(void);
+    void get_dsp(unsigned int sample_rate);
+    void decode_aiken_biphase(vector<sample_t>& input);
+    sample_t evaluate_max(void);
+    void cleanup(void);
+
+    // Properties
+    RtAudio adc;    // Sound input
+    vector<RtAudio::DeviceInfo> devices;    // List of devices
+    vector<int> device_indexes; // List of original device indexes
+    vector<sample_t> buffer;    // Input data buffer
+    unsigned int buffer_index;  // Current buffer index  = 0
+    // Start and end index of sample
+    unsigned int sample_start;
+    unsigned int sample_end;
+    string bitstring;   // String of bits
+    sample_t silence_thres; // Silence threshold     = SILENCE_THRES
+
+    // Configuratio properties
+    int auto_thres; //  = AUTO_THRES
+    bool max_level; //  = false
+    bool verbose;   //  = true
+    bool list_input_devices;    //  = false
+    int device_number;  //  = 0
 };
 
 

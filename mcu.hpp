@@ -16,26 +16,28 @@
 using namespace std;
 
 /**
-    Definition of the parser interface.
+    Definition of the magnetic bitstring parser.
 */
-class parser
+class magnetic_bitstring_parser
 {
 public:
-    virtual ~parser(void) {  }
+    virtual ~magnetic_bitstring_parser(void) {  }
     void parse(string& bitstring, string& result);
     void set_name(char* parser_name) { name = parser_name; }
-    virtual string get_name(void) { return name; }
+    string get_name(void) { return name; }
+    void set_char_length(unsigned int length) { char_length = length; }
 protected:
     string name;
+    unsigned int char_length; // in bits
 };
 
 /**
     Definition of IATA parser.
 */
-class iata_parser : public parser
+class iata_parser : public magnetic_bitstring_parser
 {
 public:
-    iata_parser(void) { set_name("IATA"); }
+    iata_parser(void) { set_name("IATA"); set_char_length(7); }
     virtual ~iata_parser(void) {  }
     void parse(string& bitstring, string& result);
 };
@@ -43,10 +45,10 @@ public:
 /**
     Definition of ABA parser.
 */
-class aba_parser : public parser
+class aba_parser : public magnetic_bitstring_parser
 {
 public:
-    aba_parser(void) { set_name("ABA"); }
+    aba_parser(void) { set_name("ABA"); set_char_length(5); }
     virtual ~aba_parser(void) {  }
     void parse(string& bitstring, string& result);
 };

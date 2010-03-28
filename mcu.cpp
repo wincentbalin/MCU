@@ -22,6 +22,8 @@
 #include <iostream>
 #include <map>
 #include <vector>
+#include <string>
+#include <algorithm>
 
 #include <cstdlib>
 #include <getopt.h>
@@ -88,14 +90,194 @@ string bitstring;
 sample_t silence_thres = SILENCE_THRES;
 
 
+bool
+magnetic_bitstring_parser::check_parity(string bits)
+{
+    const unsigned int end_of_char_bits = char_length - 1;
+
+    unsigned int parity = 0;
+
+    for(unsigned int = 0; i < end_of_char_bits; i++)
+    {
+        if(bits[i] == '1')
+        {
+            parity++;
+        }
+    }
+
+    if('0' + parity % 2 != bitstring[end_of_char_bits])
+    {
+        // Parity mismatch
+        return;
+    }
+}
+
 void
 iata_parser::parse(string& bitstring, string& result)
 {
+    // Clear contents of the string
+    result.clear();
+
+    // initial condition is LRC of the start sentinel
+    int lrc[] = {1, 0, 1, 0, 0, 0, 1};
+
+    // Find start of encoded string
+    unsigned int start_decode = bitstring.find(start_sentinel);
+cerr << "start decode: " << start_decode << endl;
+    // If no start sentinel found, cancel processing
+    if(start_decode == string::npos)
+    {
+        return;
+    }
+
+    // Move start pointer to the next character past the start sentinel
+    start_decode += char_length;
+
+    // Set starting point for searching the end sentinel
+    unsigned int end_decode = start_decode;
+
+    // Find end of encoded string; ensure it's correct position
+    do
+    {
+        end_decode = bitstring.find(end_sentinel, end_decode + 1);
+cerr << "end decode: " << end_decode << endl;
+    }
+    while(end_decode != string::npos &&
+          (end_decode - start_decode) % char_length != 0);
+
+    // If no end sentinel found, cancel processing
+    if(end_decode == string::npos)
+    {
+        return;
+    }
+
+    // Enter start sentinel
+    result[0] = '%';
+cerr << 'a' << endl;
+    // Decoded character for character
+    for(unsigned int i = start_decode; i < end_decode; i += char_length)
+    {
+        unsigned int bit_index;
+
+        // Check parity of the character
+        int parity = 0;
+        const unsigned int end_of_char_bits = i + char_length - 1;
+cerr << 'b' << endl;
+        for(bit_index = i; bit_index < end_of_char_bits; bit_index++)
+        {
+            if(bitstring[bit_index] == '1')
+            {
+                parity++;
+            }
+        }
+cerr << 'c' << endl;
+        if('0' + parity % 2 != bitstring[end_of_char_bits])
+        {
+            // Parity mismatch
+            return;
+        }
+cerr << 'd' << endl;
+        // Decode bits
+        char c = 48;
+        unsigned int value;
+
+        for(bit_index = i, value = 1;
+            bit_index < end_of_char_bits;
+            bit_index++, value += value)
+        {
+            c += bitstring[bit_index] == '1' ? value : 0;
+        }
+cerr << 'e' << endl;
+        result.push_back(c);
+    }
+cerr << 'f' << endl;
+    // Append end sentinel
+    result.push_back('?');
 }
 
 void
 aba_parser::parse(string& bitstring, string& result)
 {
+    // Clear contents of the string
+    result.clear();
+
+    // initial condition is LRC of the start sentinel
+    int lrc[] = {1, 1, 0, 1, 0};
+
+    // Find start of encoded string
+    unsigned int start_decode = bitstring.find(start_sentinel);
+cerr << "start decode: " << start_decode << endl;
+cerr << "char_length: " << char_length << endl;
+    // If no start sentinel found, cancel processing
+    if(start_decode == string::npos)
+    {
+        return;
+    }
+
+    // Move start pointer to the next character past the start sentinel
+    start_decode += char_length;
+
+    // Set starting point for searching the end sentinel
+    unsigned int end_decode = start_decode;
+
+    // Find end of encoded string; ensure it's correct position
+    do
+    {
+        end_decode = bitstring.find(end_sentinel, end_decode + 1);
+cerr << "end_decode: " << end_decode << endl;
+cerr << "(end_decode - start_decode) % char_length = " << (end_decode - start_decode) % char_length << endl;
+    }
+    while(end_decode != string::npos &&
+          (end_decode - start_decode) % char_length != 0);
+
+    // If no end sentinel found, cancel processing
+    if(end_decode == string::npos)
+    {
+        return;
+    }
+
+    // Enter start sentinel
+    result[0] = ';';
+cerr << 'a' << endl;
+    // Decoded character for character
+    for(unsigned int i = start_decode; i < end_decode; i += char_length)
+    {
+        unsigned int bit_index;
+
+        // Check parity of the character
+        int parity = 0;
+        const unsigned int end_of_char_bits = i + char_length - 1;
+cerr << 'b' << endl;
+        for(bit_index = i; bit_index < end_of_char_bits; bit_index++)
+        {
+            if(bitstring[bit_index] == '1')
+            {
+                parity++;
+            }
+        }
+
+        if('0' + parity % 2 != bitstring[end_of_char_bits])
+        {
+            // Parity mismatch
+            return;
+        }
+cerr << 'c' << endl;
+        // Decode bits
+        char c = 48;
+        unsigned int value;
+
+        for(bit_index = i, value = 1;
+            bit_index < end_of_char_bits;
+            bit_index++, value += value)
+        {
+            c += bitstring[bit_index] == '1' ? value : 0;
+        }
+cerr << 'd' << endl;
+        result.push_back(c);
+    }
+cerr << 'e' << endl;
+    // Append end sentinel
+    result.push_back('?');
 }
 
 
@@ -664,7 +846,7 @@ main(int argc, char** argv)
     // Print bit string if needed
     if(verbose)
     {
-        cout << "Bit string: " << bitstring << endl;
+        cout << endl << "Bit string: " << bitstring << endl << endl;
     }
 
     // Automatically set threshold if requested
@@ -679,6 +861,38 @@ main(int argc, char** argv)
         cerr << "Silence threshold: " << silence_thres
              << " (" << auto_thres << "% of max)" << endl;
     }
+
+    // Create reversed bit string
+    string reversed_bitstring = bitstring;
+    reverse(reversed_bitstring.begin(), reversed_bitstring.end());
+
+    // Instantiate parsers
+    iata_parser iata_parser;
+    aba_parser aba_parser;
+    string decoded_string;
+
+    // Try decoding using all available parsers
+    cout << endl;
+
+    cout << "Decoding bitstring using " << iata_parser.get_name()
+         << " code:" << endl;
+    iata_parser.parse(bitstring, decoded_string);
+    cout << decoded_string << endl << endl;
+
+    cout << "Decoding bitstring using " << aba_parser.get_name()
+         << " code:" << endl;
+    aba_parser.parse(bitstring, decoded_string);
+    cout << decoded_string << endl << endl;
+
+    cout << "Decoding reversed bitstring using " << iata_parser.get_name()
+         << " code:" << endl;
+    iata_parser.parse(reversed_bitstring, decoded_string);
+    cout << decoded_string << endl << endl;
+
+    cout << "Decoding reversed bitstring using " << aba_parser.get_name()
+         << " code:" << endl;
+    aba_parser.parse(reversed_bitstring, decoded_string);
+    cout << decoded_string << endl << endl;
 
     // Stop and close audio stream
     cleanup();

@@ -26,9 +26,14 @@ public:
     void set_name(char* parser_name) { name = parser_name; }
     string get_name(void) { return name; }
     void set_char_length(unsigned int length) { char_length = length; }
+    void set_start_sentinel(char* sentinel) { start_sentinel = sentinel; }
+    void set_end_sentinel(char* sentinel) { end_sentinel = sentinel; }
+    bool check_parity(string bits);
 protected:
     string name;
     unsigned int char_length; // in bits
+    string start_sentinel;
+    string end_sentinel;
 };
 
 /**
@@ -37,7 +42,13 @@ protected:
 class iata_parser : public magnetic_bitstring_parser
 {
 public:
-    iata_parser(void) { set_name("IATA"); set_char_length(7); }
+    iata_parser(void)
+    {
+        set_name("IATA");
+        set_char_length(7);
+        set_start_sentinel("1010001");
+        set_end_sentinel("1111100");
+    }
     virtual ~iata_parser(void) {  }
     void parse(string& bitstring, string& result);
 };
@@ -48,7 +59,13 @@ public:
 class aba_parser : public magnetic_bitstring_parser
 {
 public:
-    aba_parser(void) { set_name("ABA"); set_char_length(5); }
+    aba_parser(void)
+    {
+        set_name("ABA");
+        set_char_length(5);
+        set_start_sentinel("11010");
+        set_end_sentinel("11111");
+    }
     virtual ~aba_parser(void) {  }
     void parse(string& bitstring, string& result);
 };

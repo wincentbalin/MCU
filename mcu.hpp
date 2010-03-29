@@ -25,7 +25,7 @@ using namespace std;
 
 
 // Version of the program
-#define VERSION 0.1
+#define VERSION 1.0
 
 // Initial silence threshold
 #define SILENCE_THRES 5000

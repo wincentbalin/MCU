@@ -102,13 +102,20 @@ public:
 };
 
 /**
+    RtAudio input function.
+*/
+int input(void* out_buffer, void* in_buffer, unsigned int n_buffer_frames,
+          double stream_time, RtAudioStreamStatus status, void* data);
+
+
+/**
     Definition of the MCU.
 */
 class mcu
 {
 public:
     mcu(int argc, char** argv);
-    void run(void);
+    void run(RtAudioCallback input_function, vector<sample_t>* b);
 private:
     // Methods
     void print_version(void);
@@ -116,8 +123,6 @@ private:
     void list_devices(vector<RtAudio::DeviceInfo>& dev, vector<int>& index);
     void print_devices(vector<RtAudio::DeviceInfo>& dev);
     unsigned int greatest_sample_rate(int device_index);
-    int input(void* out_buffer, void* in_buffer, unsigned int n_buffer_frames,
-              double stream_time, RtAudioStreamStatus status, void* data);
     void print_max_level(unsigned int sample_rate);
     void silence_pause(void);
     void get_dsp(unsigned int sample_rate);
@@ -129,7 +134,7 @@ private:
     RtAudio adc;    // Sound input
     vector<RtAudio::DeviceInfo> devices;    // List of devices
     vector<int> device_indexes; // List of original device indexes
-    vector<sample_t> buffer;    // Input data buffer
+    vector<sample_t>* buffer;
     unsigned int buffer_index;  // Current buffer index  = 0
     // Start and end index of sample
     unsigned int sample_start;
@@ -137,7 +142,7 @@ private:
     string bitstring;   // String of bits
     sample_t silence_thres; // Silence threshold     = SILENCE_THRES
 
-    // Configuratio properties
+    // Configuration properties
     int auto_thres; //  = AUTO_THRES
     bool max_level; //  = false
     bool verbose;   //  = true

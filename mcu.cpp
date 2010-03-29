@@ -257,8 +257,11 @@ mcu::mcu(int argc, char** argv)
 }
 
 void
-mcu::run(void)
+mcu::run(RtAudioCallback input_function, vector<sample_t>* b)
 {
+    // Save reference to the buffer
+    buffer = b;
+
     // Print version
     if(verbose)
     {
@@ -301,7 +304,7 @@ mcu::run(void)
     try
     {
         adc.openStream(NULL, &input_params, RTAUDIO_SINT16,
-                       sample_rate, &buffer_frames, &input, NULL);
+                       sample_rate, &buffer_frames, input_function, NULL);
         adc.startStream();
     }
     catch(RtError& e)
@@ -341,8 +344,8 @@ mcu::run(void)
     // Extract samples
     unsigned int samples = sample_end - sample_start;
     vector<sample_t> sample_buffer(samples);
-    copy(buffer.begin() + sample_start,
-         buffer.begin() + sample_end,
+    copy(buffer->begin() + sample_start,
+         buffer->begin() + sample_end,
          back_inserter(sample_buffer));
 
 
@@ -520,31 +523,6 @@ mcu::greatest_sample_rate(int device_index)
     return max_rate;
 }
 
-int
-mcu::input(void* out_buffer, void* in_buffer, unsigned int n_buffer_frames,
-           double stream_time, RtAudioStreamStatus status, void* data)
-{
-    (void) out_buffer;
-    (void) stream_time;
-    (void) data;
-
-    // Check for audio input overflow
-    if(status == RTAUDIO_INPUT_OVERFLOW)
-    {
-        cerr << "Audio input overflow!"<< endl;
-        return 2;
-    }
-
-    // Copy audio input data to buffer
-    sample_t* src = (sample_t*) in_buffer;
-    for(unsigned int i = 0, ; i < n_buffer_frames; i++, src++)
-    {
-        buffer.push_back(*src);
-    }
-
-    return 0;
-}
-
 void
 mcu::print_max_level(unsigned int sample_rate)
 {
@@ -556,10 +534,10 @@ mcu::print_max_level(unsigned int sample_rate)
     for(unsigned int i = 0; i < MAX_TERM * sample_rate; i++)
     {
         // Wait if needed
-        if(buffer.size() <= i)
+        if(buffer->size() <= i)
             SLEEP(100);
 
-        level = buffer[i];
+        level = buffer->at(i);
 
         // Make level value absolute
         if(level < 0)
@@ -584,16 +562,16 @@ mcu::silence_pause(void)
     while(true)
     {
         // Wait till buffer has enough data
-        while(buffer.size() <= buffer_index)
+        while(buffer->size() <= buffer_index)
         {
             SLEEP(100);
         }
 
-        for(; buffer_index < buffer.size(); buffer_index++)
+        for(; buffer_index < buffer->size(); buffer_index++)
         {
             // On first sample with absolute value
             // greater than threshold bail out
-            sample_t sample = buffer[buffer_index];
+            sample_t sample = buffer->at(buffer_index);
 
             if(sample < 0)
             {
@@ -622,9 +600,9 @@ mcu::get_dsp(unsigned int sample_rate)
     while(true)
     {
         // Find supposed end of sample (sample below threshold)
-        for(; buffer_index < buffer.size(); buffer_index++)
+        for(; buffer_index < buffer->size(); buffer_index++)
         {
-            sample_t sample = buffer[buffer_index];
+            sample_t sample = buffer->at(buffer_index);
 
             if(sample < 0)
             {
@@ -639,18 +617,18 @@ mcu::get_dsp(unsigned int sample_rate)
         }
 
         // Wait till buffer has enough data
-        while(buffer.size() - sample_end < silence_interval)
+        while(buffer->size() - sample_end < silence_interval)
         {
             SLEEP(100);
         }
 
-        // Check whether the suppoed end of the sample is the real one
+        // Check whether the supposed end of the sample is the real one
         unsigned int silence_counter;
         for(silence_counter = 0;
             silence_counter < silence_interval;
             silence_counter++, buffer_index++)
         {
-            sample_t sample = buffer[buffer_index];
+            sample_t sample = buffer->at(buffer_index);
 
             if(sample < 0)
             {
@@ -757,9 +735,9 @@ mcu::evaluate_max(void)
 {
     sample_t max = 0;
 
-    for(unsigned int i = 0; i < buffer.size(); i++)
+    for(unsigned int i = 0; i < buffer->size(); i++)
     {
-        sample_t value = buffer[i];
+        sample_t value = buffer->at(i);
         if(value > max)
         {
             max = value;
@@ -789,12 +767,41 @@ mcu::cleanup(void)
 }
 
 
+// Input data buffer
+vector<sample_t> buf;
+
+// RtAudio input function
+int
+input(void* out_buffer, void* in_buffer, unsigned int n_buffer_frames,
+      double stream_time, RtAudioStreamStatus status, void* data)
+{
+    (void) out_buffer;
+    (void) stream_time;
+    (void) data;
+
+    // Check for audio input overflow
+    if(status == RTAUDIO_INPUT_OVERFLOW)
+    {
+        cerr << "Audio input overflow!"<< endl;
+        return 2;
+    }
+
+    // Copy audio input data to buffer
+    sample_t* src = (sample_t*) in_buffer;
+    for(unsigned int i = 0, ; i < n_buffer_frames; i++, src++)
+    {
+        buf.push_back(*src);
+    }
+
+    return 0;
+}
+
 int
 main(int argc, char** argv)
 {
     mcu mcu(argc, argv);
 
-    mcu.run();
+    mcu.run(&input, &buf);
 
     return EXIT_SUCCESS;
 }

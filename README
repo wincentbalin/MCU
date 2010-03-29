@@ -46,7 +46,11 @@ Steps:
 
       make
 
-And voila, you have the executable.
+And voila, you have the executable. Run it with
+
+      ./mcu -h
+
+to get acquainted with possible options.
 
 
 TODO

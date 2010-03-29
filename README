@@ -17,4 +17,43 @@ platform-independent audio I/O, with the routines from dab.c/dmsb.c
 files from the aforementioned article. The software is written in C++,
 as it is needed by RtAudio.
 
+Compiling
+---------
+
+Currently the program is trimmed to compile on Win* platform. Linux users
+may either work with the original dab.c/dmsb.c sources or make MCU compile
+under Linux (or any other UNIX) too.
+
+Prerequisites:
+
+0. Cygwin with MinGW compiler
+
+Steps:
+
+1. Get RtAudio library and unpack it into the directory with MCU sources
+
+2. Move the Makefile_RtAudio into the RtAudio-*/tests directory
+
+2.1/2. If needed, choose MinGW compiler as the default one with
+
+       /usr/sbin/alternatives --config gcc
+
+3. Go to the RtAudio-*/tests and compile the RtAudio library with
+
+       make -f Makefile_RtAudio
+
+4. Go back to the directory with MCU sources and type
+
+      make
+
+And voila, you have the executable.
+
+
+TODO
+----
+
+* Integrate libsndfile for decoding files recorded previously
+
+* Implement other bitstream decoders
+
 

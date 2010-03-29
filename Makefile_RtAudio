@@ -1,0 +1,19 @@
+CC=gcc -mno-cygwin
+INCLUDES=-I".." -I"../include"
+SRC_DIR=".."
+CFLAGS=-D__WINDOWS_DS__ $(INCLUDES) -O3 -c
+LIBS=-lole32 -lwinmm -lWsock32 -ldsound -lstdc++ -lm
+OBJS=audioprobe.o RtAudio.o
+
+audioprobe: $(OBJS)
+	$(CC) -o audioprobe.exe $(OBJS) $(LIBS)
+
+audioprobe.o: audioprobe.cpp
+	$(CC) $(CFLAGS) audioprobe.cpp
+
+RtAudio.o:
+	$(CC) $(CFLAGS) $(SRC_DIR)/$*.cpp
+
+clean:
+	rm -f audioprobe.exe *~ *.o
+

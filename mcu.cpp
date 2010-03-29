@@ -164,7 +164,10 @@ magnetic_bitstring_parser::check_parity(string& bits)
 }
 
 
-mcu::mcu(int argc, char** argv)
+mcu::mcu(int argc, char** argv) :
+        buffer_index(0), silence_thres(SILENCE_THRES),
+        auto_thres(AUTO_THRES), max_level(false), verbose(true),
+        list_input_devices(false), device_number(0)
 {
     // Set up properties
     buffer_index = 0;

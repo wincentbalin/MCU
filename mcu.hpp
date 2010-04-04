@@ -107,7 +107,6 @@ public:
 int input(void* out_buffer, void* in_buffer, unsigned int n_buffer_frames,
           double stream_time, RtAudioStreamStatus status, void* data);
 
-
 /**
     Definition of the MCU.
 */

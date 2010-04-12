@@ -39,7 +39,7 @@ using namespace std;
 
 
 void
-magnetic_bitstring_parser::parse(string& bitstring, string& result)
+MagneticBitstringParser::parse(string& bitstring, string& result)
 {
     // Clear contents of the string
     result.clear();
@@ -127,7 +127,7 @@ magnetic_bitstring_parser::parse(string& bitstring, string& result)
 }
 
 unsigned char
-magnetic_bitstring_parser::decode_char(string& bits)
+MagneticBitstringParser::decode_char(string& bits)
 {
     unsigned char c = 48; // = '0'
 
@@ -142,7 +142,7 @@ magnetic_bitstring_parser::decode_char(string& bits)
 }
 
 bool
-magnetic_bitstring_parser::check_parity(string& bits)
+MagneticBitstringParser::check_parity(string& bits)
 {
     unsigned int parity = 0;
 
@@ -164,7 +164,7 @@ magnetic_bitstring_parser::check_parity(string& bits)
 }
 
 
-mcu::mcu(int argc, char** argv) :
+MCU::MCU(int argc, char** argv) :
         buffer_index(0), silence_thres(SILENCE_THRES),
         auto_thres(AUTO_THRES), max_level(false), verbose(true),
         list_input_devices(false), device_number(0)
@@ -249,7 +249,7 @@ mcu::mcu(int argc, char** argv) :
 }
 
 void
-mcu::run(RtAudioCallback input_function, vector<sample_t>* b)
+MCU::run(RtAudioCallback input_function, vector<sample_t>* b)
 {
     // Save reference to the buffer
     buffer = b;
@@ -368,8 +368,8 @@ mcu::run(RtAudioCallback input_function, vector<sample_t>* b)
     reverse(reversed_bitstring.begin(), reversed_bitstring.end());
 
     // Instantiate parsers
-    iata_parser iata_parser;
-    aba_parser aba_parser;
+    IATAParser iata_parser;
+    ABAParser aba_parser;
     string decoded_string;
 
     // Try decoding using all available parsers
@@ -401,7 +401,7 @@ mcu::run(RtAudioCallback input_function, vector<sample_t>* b)
 }
 
 void
-mcu::print_version(void)
+MCU::print_version(void)
 {
     cerr << "mcu - Magnetic stripe Card Utility" << endl
          << "Version " << VERSION << endl
@@ -409,7 +409,7 @@ mcu::print_version(void)
 }
 
 void
-mcu::print_help(void)
+MCU::print_help(void)
 {
     print_version();
 
@@ -431,7 +431,7 @@ mcu::print_help(void)
 }
 
 void
-mcu::list_devices(vector<RtAudio::DeviceInfo>& dev, vector<int>& index)
+MCU::list_devices(vector<RtAudio::DeviceInfo>& dev, vector<int>& index)
 {
     // Get devices
     for(unsigned int i = 0; i < adc.getDeviceCount(); i++)
@@ -465,7 +465,7 @@ mcu::list_devices(vector<RtAudio::DeviceInfo>& dev, vector<int>& index)
 }
 
 void
-mcu::print_devices(vector<RtAudio::DeviceInfo>& dev)
+MCU::print_devices(vector<RtAudio::DeviceInfo>& dev)
 {
     // API map
     map<int, string> api_map;
@@ -496,7 +496,7 @@ mcu::print_devices(vector<RtAudio::DeviceInfo>& dev)
 }
 
 unsigned int
-mcu::greatest_sample_rate(int device_index)
+MCU::greatest_sample_rate(int device_index)
 {
     unsigned int max_rate = 0;
 
@@ -516,7 +516,7 @@ mcu::greatest_sample_rate(int device_index)
 }
 
 void
-mcu::print_max_level(unsigned int sample_rate)
+MCU::print_max_level(unsigned int sample_rate)
 {
     cout << "Terminating after " << MAX_TERM << " seconds..." << endl;
 
@@ -549,7 +549,7 @@ mcu::print_max_level(unsigned int sample_rate)
 }
 
 void
-mcu::silence_pause(void)
+MCU::silence_pause(void)
 {
     while(true)
     {
@@ -579,7 +579,7 @@ mcu::silence_pause(void)
 }
 
 void
-mcu::get_dsp(unsigned int sample_rate)
+MCU::get_dsp(unsigned int sample_rate)
 {
     // Set start of the sample
     sample_start = buffer_index;
@@ -642,7 +642,7 @@ mcu::get_dsp(unsigned int sample_rate)
 }
 
 void
-mcu::decode_aiken_biphase(vector<sample_t>& input)
+MCU::decode_aiken_biphase(vector<sample_t>& input)
 {
     const unsigned int input_size = input.size();
 
@@ -723,7 +723,7 @@ mcu::decode_aiken_biphase(vector<sample_t>& input)
 }
 
 sample_t
-mcu::evaluate_max(void)
+MCU::evaluate_max(void)
 {
     sample_t max = 0;
 
@@ -740,7 +740,7 @@ mcu::evaluate_max(void)
 }
 
 void
-mcu::cleanup(void)
+MCU::cleanup(void)
 {
     // Stop audio stream
     try
@@ -791,7 +791,7 @@ input(void* out_buffer, void* in_buffer, unsigned int n_buffer_frames,
 int
 main(int argc, char** argv)
 {
-    mcu mcu(argc, argv);
+    MCU mcu(argc, argv);
 
     mcu.run(&input, &buf);
 

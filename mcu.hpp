@@ -49,10 +49,10 @@ typedef int16_t sample_t;
 /**
     Definition of the magnetic bitstring parser.
 */
-class magnetic_bitstring_parser
+class MagneticBitstringParser
 {
 public:
-    virtual ~magnetic_bitstring_parser(void) {  }
+    virtual ~MagneticBitstringParser(void) {  }
     virtual void parse(string& bitstring, string& result);
     void set_name(char* parser_name) { name = parser_name; }
     string get_name(void) { return name; }
@@ -72,33 +72,33 @@ protected:
 /**
     Definition of IATA parser.
 */
-class iata_parser : public magnetic_bitstring_parser
+class IATAParser : public MagneticBitstringParser
 {
 public:
-    iata_parser(void)
+    IATAParser(void)
     {
         set_name("IATA");
         set_char_length(7);
         set_start_sentinel("1010001");
         set_end_sentinel("1111100");
     }
-    virtual ~iata_parser(void) {  }
+    virtual ~IATAParser(void) {  }
 };
 
 /**
     Definition of ABA parser.
 */
-class aba_parser : public magnetic_bitstring_parser
+class ABAParser : public MagneticBitstringParser
 {
 public:
-    aba_parser(void)
+    ABAParser(void)
     {
         set_name("ABA");
         set_char_length(5);
         set_start_sentinel("11010");
         set_end_sentinel("11111");
     }
-    virtual ~aba_parser(void) {  }
+    virtual ~ABAParser(void) {  }
 };
 
 /**
@@ -110,10 +110,10 @@ int input(void* out_buffer, void* in_buffer, unsigned int n_buffer_frames,
 /**
     Definition of the MCU.
 */
-class mcu
+class MCU
 {
 public:
-    mcu(int argc, char** argv);
+    MCU(int argc, char** argv);
     void run(RtAudioCallback input_function, vector<sample_t>* b);
 private:
     // Methods

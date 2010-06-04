@@ -17,6 +17,8 @@
 
 #include "RtAudio.h"
 
+#include <inttypes.h>
+
 // For assertions
 #include <cassert>
 #include <cstring>

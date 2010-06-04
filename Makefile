@@ -2,13 +2,26 @@
 # Makefile for the Magnetic stripe Card Utility project
 #
 
-CC=gcc -mno-cygwin
+CC=gcc
+
 RTAUDIO_VERSION=4.0.7
 RTAUDIO_SRC=rtaudio-$(RTAUDIO_VERSION)
 INCLUDES=-I"." -I$(RTAUDIO_SRC) -I$(RTAUDIO_SRC)/include
-CFLAGS=-D__WINDOWS_DS__ $(INCLUDES) -O2 -c
-LIBS=-lole32 -lwinmm -lWsock32 -ldsound -lstdc++ -lm
+CFLAGS=$(INCLUDES) -O2 -c
 OBJS=mcu.o RtAudio.o
+
+ifeq ($(findstring CYGWIN,$(shell uname)), CYGWIN)
+CFLAGS+=-mno-cygwin
+LDFLAGS+=-mno-cygwin
+endif
+
+ifdef COMSPEC
+CFLAGS+=-D__WINDOWS_DS__
+LIBS=-lole32 -lwinmm -lWsock32 -ldsound -lstdc++ -lm
+else
+CFLAGS+=-D__LINUX_ALSA__
+LIBS=-lasound -lstdc++ -lm
+endif
 
 all: mcu
 

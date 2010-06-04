@@ -780,7 +780,7 @@ input(void* out_buffer, void* in_buffer, unsigned int n_buffer_frames,
 
     // Copy audio input data to buffer
     sample_t* src = (sample_t*) in_buffer;
-    for(unsigned int i = 0, ; i < n_buffer_frames; i++, src++)
+    for(unsigned int i = 0; i < n_buffer_frames; i++, src++)
     {
         buf.push_back(*src);
     }

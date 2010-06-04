@@ -1,0 +1,37 @@
+#
+# Makefile for Magnetic Card Utility
+#
+
+LIBSNDFILE_OCAML_DIR = libsndfile-ocaml
+OCAMLOPT = ocamlopt.opt
+PREPROCESSOR = -pp camlp5o
+ASMOPTS = -S
+INCLUDES = -I $(LIBSNDFILE_OCAML_DIR) -ccopt -L$(LIBSNDFILE_OCAML_DIR)
+CCOPT = #-cclib -lsndfile -cclib -lFLAC -cclib -logg -cclib -ldl \
+	#-ccopt -static
+LIBS = sndfile.cmxa
+
+all:	mcu
+
+mcu:	mcu.ml sndfile_stub.o
+	$(OCAMLOPT) $(PREPROCESSOR) $(ASMOPTS) $(INCLUDES) $(CCOPT) -o $@ $(LIBS) $<
+
+sndfile_stub.o:
+	(cd $(LIBSNDFILE_OCAML_DIR) && make all)
+	ln -s $(LIBSNDFILE_OCAML_DIR)/sndfile_stub.o .
+
+doc:	
+	(cd $(LIBSNDFILE_OCAML_DIR) && make Sndfile.html)
+	ocamldoc -stars -html -colorize-code -I libsndfile-ocaml mcu.ml
+
+
+clean:
+	(cd $(LIBSNDFILE_OCAML_DIR) && make clean)
+	rm -f mcu mcu.cmi mcu.cmx mcu.o mcu.s a.out mcu.cmo ocamldoc.* \
+		.depend sndfile_stub.o *.html *.css
+
+depend:
+	ocamldep *.mli *.ml > .depend
+
+-include .depend
+

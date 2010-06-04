@@ -56,11 +56,11 @@ class MagneticBitstringParser
 public:
     virtual ~MagneticBitstringParser(void) {  }
     virtual void parse(string& bitstring, string& result);
-    void set_name(char* parser_name) { name = parser_name; }
+    void set_name(const char* parser_name) { name = parser_name; }
     string get_name(void) { return name; }
     void set_char_length(unsigned int length) { char_length = length; parity_bit = length - 1; }
-    void set_start_sentinel(char* sentinel) { assert(strlen(sentinel) == char_length); start_sentinel = sentinel; }
-    void set_end_sentinel(char* sentinel) { assert(strlen(sentinel) == char_length); end_sentinel = sentinel; }
+    void set_start_sentinel(const char* sentinel) { assert(strlen(sentinel) == char_length); start_sentinel = sentinel; }
+    void set_end_sentinel(const char* sentinel) { assert(strlen(sentinel) == char_length); end_sentinel = sentinel; }
     unsigned char decode_char(string& bits);
     bool check_parity(string& bits);
 protected:

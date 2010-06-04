@@ -30,7 +30,7 @@ Debug: all
 Release: all
 
 mcu: $(OBJS)
-	$(CC) -o mcu $(OBJS) $(LIBS)
+	$(CC) -o mcu $(LDFLAGS) $(OBJS) $(LIBS)
 
 mcu.o:	mcu.cpp mcu.hpp
 	$(CC) $(CFLAGS) mcu.cpp

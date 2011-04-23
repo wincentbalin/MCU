@@ -5,7 +5,7 @@
 
     Part of Magnetic stripe Card Utility.
 
-    Copyright (c) 2010 Wincent Balin
+    Copyright (c) 2010-2011 Wincent Balin
 
     Based heavily upon dab.c and dmsb.c by Joseph Battaglia.
 
@@ -405,7 +405,7 @@ MCU::print_version(void)
 {
     cerr << "mcu - Magnetic stripe Card Utility" << endl
          << "Version " << VERSION << endl
-         << "Copyright (c) 2010 Wincent Balin" << endl;
+         << "Copyright (c) 2010-2011 Wincent Balin" << endl;
 }
 
 void

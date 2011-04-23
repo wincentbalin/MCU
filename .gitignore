@@ -1,4 +1,5 @@
 rtaudio-*
+*.o
 .cproject
 .project
 .settings

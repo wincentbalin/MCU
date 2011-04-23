@@ -42,7 +42,11 @@ Steps:
 
        make -f Makefile_RtAudio
 
-4. Go back to the directory with MCU sources and type
+
+4. Go back to the directory with MCU sources. If needed, adjust
+   the version of RtAudio in the Makefile
+
+5. Type
 
       make
 

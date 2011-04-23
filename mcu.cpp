@@ -337,16 +337,6 @@ MCU::run(RtAudioCallback input_function, std::vector<sample_t>* b)
          buffer->begin() + sample_end,
          std::back_inserter(sample_buffer));
 
-
-    // Decode result
-    decode_aiken_biphase(sample_buffer);
-
-    // Print bit string if needed
-    if(verbose)
-    {
-        std::cout << std::endl << "Bit string: " << bitstring << std::endl << std::endl;
-    }
-
     // Automatically set threshold if requested
     if(auto_thres > 0)
     {
@@ -358,6 +348,15 @@ MCU::run(RtAudioCallback input_function, std::vector<sample_t>* b)
     {
         std::cerr << "Silence threshold: " << silence_thres
                   << " (" << auto_thres << "% of max)" << std::endl;
+    }
+
+    // Decode result
+    decode_aiken_biphase(sample_buffer);
+
+    // Print bit string if needed
+    if(verbose)
+    {
+        std::cout << std::endl << "Bit string: " << bitstring << std::endl << std::endl;
     }
 
     // Create reversed bit string

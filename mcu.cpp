@@ -35,11 +35,8 @@
 #endif
 
 
-using namespace std;
-
-
 void
-MagneticBitstringParser::parse(string& bitstring, string& result)
+MagneticBitstringParser::parse(std::string& bitstring, std::string& result)
 {
     // Clear contents of the string
     result.clear();
@@ -57,7 +54,7 @@ MagneticBitstringParser::parse(string& bitstring, string& result)
     size_t start_decode = bitstring.find(start_sentinel);
 
     // If no start sentinel found, cancel processing
-    if(start_decode == string::npos)
+    if(start_decode == std::string::npos)
     {
         return;
     }
@@ -73,11 +70,11 @@ MagneticBitstringParser::parse(string& bitstring, string& result)
     {
         end_decode = bitstring.find(end_sentinel, end_decode + 1);
     }
-    while(end_decode != string::npos &&
+    while(end_decode != std::string::npos &&
           (end_decode - start_decode) % char_length != 0);
 
     // If no end sentinel found, cancel processing
-    if(end_decode == string::npos)
+    if(end_decode == std::string::npos)
     {
         return;
     }
@@ -89,15 +86,15 @@ MagneticBitstringParser::parse(string& bitstring, string& result)
     for(size_t i = start_decode; i < end_decode + char_length; i += char_length)
     {
         // Extract bits
-        string char_bits;
+        std::string char_bits;
         copy(bitstring.begin() + i,
              bitstring.begin() + i + char_length,
-             back_inserter(char_bits));
+             std::back_inserter(char_bits));
 
         if(! check_parity(char_bits))
         {
             // Parity mismatch
-            cerr << "Character parity mismatch!" << endl;
+            std::cerr << "Character parity mismatch!" << std::endl;
             return;
         }
 
@@ -112,7 +109,7 @@ MagneticBitstringParser::parse(string& bitstring, string& result)
     }
 
     // Check for correct LRC
-    string lrc_bits;
+    std::string lrc_bits;
     for(size_t i = 0; i < char_length; i++)
     {
         lrc_bits.push_back('0' + lrc[i]);
@@ -121,13 +118,13 @@ MagneticBitstringParser::parse(string& bitstring, string& result)
     if(! check_parity(lrc_bits))
     {
         // Parity mismatch
-        cerr << "Information parity mismatch!" << endl;
+        std::cerr << "Information parity mismatch!" << std::endl;
         return;
     }
 }
 
 unsigned char
-MagneticBitstringParser::decode_char(string& bits)
+MagneticBitstringParser::decode_char(std::string& bits)
 {
     unsigned char c = 48; // = '0'
 
@@ -142,7 +139,7 @@ MagneticBitstringParser::decode_char(string& bits)
 }
 
 bool
-MagneticBitstringParser::check_parity(string& bits)
+MagneticBitstringParser::check_parity(std::string& bits)
 {
     unsigned int parity = 0;
 
@@ -249,7 +246,7 @@ MCU::MCU(int argc, char** argv) :
 }
 
 void
-MCU::run(RtAudioCallback input_function, vector<sample_t>* b)
+MCU::run(RtAudioCallback input_function, std::vector<sample_t>* b)
 {
     // Save reference to the buffer
     buffer = b;
@@ -258,7 +255,7 @@ MCU::run(RtAudioCallback input_function, vector<sample_t>* b)
     if(verbose)
     {
         print_version();
-        cerr << endl;
+        std::cerr << std::endl;
     }
 
     // Make RtAudio part verbose too
@@ -268,7 +265,7 @@ MCU::run(RtAudioCallback input_function, vector<sample_t>* b)
     // If no sound devices found, exit
     if(adc.getDeviceCount() < 1)
     {
-        cerr << "No audio devices found!" << endl;
+        std::cerr << "No audio devices found!" << std::endl;
         exit(EXIT_FAILURE);
     }
 
@@ -301,7 +298,7 @@ MCU::run(RtAudioCallback input_function, vector<sample_t>* b)
     }
     catch(RtError& e)
     {
-        cerr << endl << e.getMessage() << endl;
+        std::cerr << std::endl << e.getMessage() << std::endl;
         cleanup();
     }
 
@@ -316,7 +313,7 @@ MCU::run(RtAudioCallback input_function, vector<sample_t>* b)
     // Sanity check for silence threshold
     if(silence_thres == 0)
     {
-        cerr << "Error: Invalid silence threshold!" << endl;
+        std::cerr << "Error: Invalid silence threshold!" << std::endl;
         cleanup();
         exit(EXIT_FAILURE);
     }
@@ -324,7 +321,7 @@ MCU::run(RtAudioCallback input_function, vector<sample_t>* b)
     // Wait for a sample
     if(verbose)
     {
-        cerr << "Waiting for sample..." << endl;
+        std::cerr << "Waiting for sample..." << std::endl;
     }
 
     silence_pause();
@@ -335,10 +332,10 @@ MCU::run(RtAudioCallback input_function, vector<sample_t>* b)
 
     // Extract samples
     size_t samples = sample_end - sample_start;
-    vector<sample_t> sample_buffer(samples);
+    std::vector<sample_t> sample_buffer(samples);
     copy(buffer->begin() + sample_start,
          buffer->begin() + sample_end,
-         back_inserter(sample_buffer));
+         std::back_inserter(sample_buffer));
 
 
     // Decode result
@@ -347,7 +344,7 @@ MCU::run(RtAudioCallback input_function, vector<sample_t>* b)
     // Print bit string if needed
     if(verbose)
     {
-        cout << endl << "Bit string: " << bitstring << endl << endl;
+        std::cout << std::endl << "Bit string: " << bitstring << std::endl << std::endl;
     }
 
     // Automatically set threshold if requested
@@ -359,41 +356,41 @@ MCU::run(RtAudioCallback input_function, vector<sample_t>* b)
     // Print silence threshold
     if(verbose)
     {
-        cerr << "Silence threshold: " << silence_thres
-             << " (" << auto_thres << "% of max)" << endl;
+        std::cerr << "Silence threshold: " << silence_thres
+                  << " (" << auto_thres << "% of max)" << std::endl;
     }
 
     // Create reversed bit string
-    string reversed_bitstring = bitstring;
-    reverse(reversed_bitstring.begin(), reversed_bitstring.end());
+    std::string reversed_bitstring = bitstring;
+    std::reverse(reversed_bitstring.begin(), reversed_bitstring.end());
 
     // Instantiate parsers
     IATAParser iata_parser;
     ABAParser aba_parser;
-    string decoded_string;
+    std::string decoded_string;
 
     // Try decoding using all available parsers
-    cout << endl;
+    std::cout << std::endl;
 
-    cout << "Decoding bitstring using " << iata_parser.get_name()
-         << " code:" << endl;
+    std::cout << "Decoding bitstring using " << iata_parser.get_name()
+              << " code:" << std::endl;
     iata_parser.parse(bitstring, decoded_string);
-    cout << decoded_string << endl << endl;
+    std::cout << decoded_string << std::endl << std::endl;
 
-    cout << "Decoding bitstring using " << aba_parser.get_name()
-         << " code:" << endl;
+    std::cout << "Decoding bitstring using " << aba_parser.get_name()
+              << " code:" << std::endl;
     aba_parser.parse(bitstring, decoded_string);
-    cout << decoded_string << endl << endl;
+    std::cout << decoded_string << std::endl << std::endl;
 
-    cout << "Decoding reversed bitstring using " << iata_parser.get_name()
-         << " code:" << endl;
+    std::cout << "Decoding reversed bitstring using " << iata_parser.get_name()
+              << " code:" << std::endl;
     iata_parser.parse(reversed_bitstring, decoded_string);
-    cout << decoded_string << endl << endl;
+    std::cout << decoded_string << std::endl << std::endl;
 
-    cout << "Decoding reversed bitstring using " << aba_parser.get_name()
-         << " code:" << endl;
+    std::cout << "Decoding reversed bitstring using " << aba_parser.get_name()
+              << " code:" << std::endl;
     aba_parser.parse(reversed_bitstring, decoded_string);
-    cout << decoded_string << endl << endl;
+    std::cout << decoded_string << std::endl << std::endl;
 
     // Stop and close audio stream
     cleanup();
@@ -403,9 +400,9 @@ MCU::run(RtAudioCallback input_function, vector<sample_t>* b)
 void
 MCU::print_version(void)
 {
-    cerr << "mcu - Magnetic stripe Card Utility" << endl
-         << "Version " << VERSION << endl
-         << "Copyright (c) 2010-2011 Wincent Balin" << endl;
+    std::cerr << "mcu - Magnetic stripe Card Utility" << std::endl
+              << "Version " << VERSION << std::endl
+              << "Copyright (c) 2010-2011 Wincent Balin" << std::endl;
 }
 
 void
@@ -413,25 +410,25 @@ MCU::print_help(void)
 {
     print_version();
 
-    cerr << "Usage: mcu [OPTIONS]" << endl
-         << endl
-         << "  -a,  --auto-thres   Set auto-thres percentage" << endl
-         << "                      (default: " << AUTO_THRES << ")" << endl
-         << "  -d,  --device       Device (number) to read audio data from" << endl
-         << "                      (default: 0)" << endl
-         << "  -l,  --list-devices List compatible devices (enumerated)" << endl
-         << "  -h,  --help         Print help information" << endl
-         << "  -m,  --max-level    Shows the maximum level" << endl
-         << "                      (use to determine threshold)" << endl
-         << "  -s,  --silent       No verbose messages" << endl
-         << "  -t,  --threshold    Set silence threshold" << endl
-         << "                      (default: automatic detect)" << endl
-         << "  -v,  --version      Print version information" << endl
-         << endl;
+    std::cerr << "Usage: mcu [OPTIONS]" << std::endl
+              << std::endl
+              << "  -a,  --auto-thres   Set auto-thres percentage" << std::endl
+              << "                      (default: " << AUTO_THRES << ")" << std::endl
+              << "  -d,  --device       Device (number) to read audio data from" << std::endl
+              << "                      (default: 0)" << std::endl
+              << "  -l,  --list-devices List compatible devices (enumerated)" << std::endl
+              << "  -h,  --help         Print help information" << std::endl
+              << "  -m,  --max-level    Shows the maximum level" << std::endl
+              << "                      (use to determine threshold)" << std::endl
+              << "  -s,  --silent       No verbose messages" << std::endl
+              << "  -t,  --threshold    Set silence threshold" << std::endl
+              << "                      (default: automatic detect)" << std::endl
+              << "  -v,  --version      Print version information" << std::endl
+              << std::endl;
 }
 
 void
-MCU::list_devices(vector<RtAudio::DeviceInfo>& dev, vector<int>& index)
+MCU::list_devices(std::vector<RtAudio::DeviceInfo>& dev, std::vector<int>& index)
 {
     // Get devices
     for(size_t i = 0; i < adc.getDeviceCount(); i++)
@@ -465,10 +462,10 @@ MCU::list_devices(vector<RtAudio::DeviceInfo>& dev, vector<int>& index)
 }
 
 void
-MCU::print_devices(vector<RtAudio::DeviceInfo>& dev)
+MCU::print_devices(std::vector<RtAudio::DeviceInfo>& dev)
 {
     // API map
-    map<int, string> api_map;
+    std::map<int, std::string> api_map;
 
     // Initialize API map
     api_map[RtAudio::MACOSX_CORE] = "OS-X Core Audio";
@@ -480,7 +477,7 @@ MCU::print_devices(vector<RtAudio::DeviceInfo>& dev)
     api_map[RtAudio::RTAUDIO_DUMMY] = "RtAudio Dummy";
 
     // Print current API
-    cerr << "Current API: " << api_map[adc.getCurrentApi()] << endl;
+    std::cerr << "Current API: " << api_map[adc.getCurrentApi()] << std::endl;
 
     // Print every device
     for(size_t i = 0; i < dev.size(); i++)
@@ -488,10 +485,10 @@ MCU::print_devices(vector<RtAudio::DeviceInfo>& dev)
         RtAudio::DeviceInfo info = dev[i];
 
         // Print number of the device
-        cerr.width(3);
-        cerr << i << " "
-             << info.name
-             << (info.isDefaultInput ? " (Default input device)" : "") << endl;
+        std::cerr.width(3);
+        std::cerr << i << " "
+                  << info.name
+                  << (info.isDefaultInput ? " (Default input device)" : "") << std::endl;
     }
 }
 
@@ -518,7 +515,7 @@ MCU::greatest_sample_rate(int device_index)
 void
 MCU::print_max_level(unsigned int sample_rate)
 {
-    cout << "Terminating after " << MAX_TERM << " seconds..." << endl;
+    std::cout << "Terminating after " << MAX_TERM << " seconds..." << std::endl;
 
     // Calculate maximal level
     sample_t last_level = 0;
@@ -540,12 +537,12 @@ MCU::print_max_level(unsigned int sample_rate)
         // If current level is a (local) maximum, print it
         if(level > last_level)
         {
-            cout << "Maximum level: " << level << '\r';
+            std::cout << "Maximum level: " << level << '\r';
             last_level = level;
         }
     }
 
-    cout << endl;
+    std::cout << std::endl;
 }
 
 void
@@ -642,7 +639,7 @@ MCU::get_dsp(unsigned int sample_rate)
 }
 
 void
-MCU::decode_aiken_biphase(vector<sample_t>& input)
+MCU::decode_aiken_biphase(std::vector<sample_t>& input)
 {
     const size_t input_size = input.size();
 
@@ -658,7 +655,7 @@ MCU::decode_aiken_biphase(vector<sample_t>& input)
     // Search for peaks
     size_t peak_index = 0;
     size_t old_peak_index = 0;
-    vector<size_t> peaks;
+    std::vector<size_t> peaks;
     for(size_t i = 0; i < input_size; )
     {
         // Store peak index
@@ -689,7 +686,7 @@ MCU::decode_aiken_biphase(vector<sample_t>& input)
     // If less than two peaks found, something went wrong
     if(peaks.size() < 2)
     {
-        cerr << "No bits detected!" << endl;
+        std::cerr << "No bits detected!" << std::endl;
         cleanup();
         exit(EXIT_FAILURE);
     }
@@ -749,7 +746,7 @@ MCU::cleanup(void)
     }
     catch(RtError& e)
     {
-        cerr << endl << e.getMessage() << endl;
+        std::cerr << std::endl << e.getMessage() << std::endl;
         exit(EXIT_FAILURE);
     }
 
@@ -760,7 +757,7 @@ MCU::cleanup(void)
 
 
 // Input data buffer
-vector<sample_t> buf;
+std::vector<sample_t> buf;
 
 // RtAudio input function
 int
@@ -774,7 +771,7 @@ input(void* out_buffer, void* in_buffer, unsigned int n_buffer_frames,
     // Check for audio input overflow
     if(status == RTAUDIO_INPUT_OVERFLOW)
     {
-        cerr << "Audio input overflow!"<< endl;
+        std::cerr << "Audio input overflow!"<< std::endl;
         return 2;
     }
 

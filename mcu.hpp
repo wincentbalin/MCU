@@ -23,8 +23,6 @@
 #include <cassert>
 #include <cstring>
 
-using namespace std;
-
 
 // Version of the program
 #define VERSION 1.0
@@ -55,20 +53,20 @@ class MagneticBitstringParser
 {
 public:
     virtual ~MagneticBitstringParser(void) {  }
-    virtual void parse(string& bitstring, string& result);
+    virtual void parse(std::string& bitstring, std::string& result);
     void set_name(const char* parser_name) { name = parser_name; }
-    string get_name(void) { return name; }
+    std::string get_name(void) { return name; }
     void set_char_length(unsigned int length) { char_length = length; parity_bit = length - 1; }
     void set_start_sentinel(const char* sentinel) { assert(strlen(sentinel) == char_length); start_sentinel = sentinel; }
     void set_end_sentinel(const char* sentinel) { assert(strlen(sentinel) == char_length); end_sentinel = sentinel; }
-    unsigned char decode_char(string& bits);
-    bool check_parity(string& bits);
+    unsigned char decode_char(std::string& bits);
+    bool check_parity(std::string& bits);
 protected:
-    string name; // of the encoding
+    std::string name; // of the encoding
     unsigned int char_length; // in bits
     unsigned int parity_bit;
-    string start_sentinel;
-    string end_sentinel;
+    std::string start_sentinel;
+    std::string end_sentinel;
 };
 
 /**
@@ -116,31 +114,31 @@ class MCU
 {
 public:
     MCU(int argc, char** argv);
-    void run(RtAudioCallback input_function, vector<sample_t>* b);
+    void run(RtAudioCallback input_function, std::vector<sample_t>* b);
 private:
     // Methods
     void print_version(void);
     void print_help(void);
-    void list_devices(vector<RtAudio::DeviceInfo>& dev, vector<int>& index);
-    void print_devices(vector<RtAudio::DeviceInfo>& dev);
+    void list_devices(std::vector<RtAudio::DeviceInfo>& dev, std::vector<int>& index);
+    void print_devices(std::vector<RtAudio::DeviceInfo>& dev);
     unsigned int greatest_sample_rate(int device_index);
     void print_max_level(unsigned int sample_rate);
     void silence_pause(void);
     void get_dsp(unsigned int sample_rate);
-    void decode_aiken_biphase(vector<sample_t>& input);
+    void decode_aiken_biphase(std::vector<sample_t>& input);
     sample_t evaluate_max(void);
     void cleanup(void);
 
     // Properties
     RtAudio adc;    // Sound input
-    vector<RtAudio::DeviceInfo> devices;    // List of devices
-    vector<int> device_indexes; // List of original device indexes
-    vector<sample_t>* buffer;
+    std::vector<RtAudio::DeviceInfo> devices;    // List of devices
+    std::vector<int> device_indexes; // List of original device indexes
+    std::vector<sample_t>* buffer;
     unsigned int buffer_index;  // Current buffer index  = 0
     // Start and end index of sample
     unsigned int sample_start;
     unsigned int sample_end;
-    string bitstring;   // String of bits
+    std::string bitstring;   // String of bits
     sample_t silence_thres; // Silence threshold     = SILENCE_THRES
 
     // Configuration properties

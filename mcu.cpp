@@ -48,13 +48,13 @@ MagneticBitstringParser::parse(string& bitstring, string& result)
     int lrc[char_length];
 
     // Initialize LRC
-    for(unsigned int i = 0; i < char_length; i++)
+    for(size_t i = 0; i < char_length; i++)
     {
         lrc[i] = start_sentinel[i] - '0';
     }
 
     // Find start of encoded string
-    unsigned int start_decode = bitstring.find(start_sentinel);
+    size_t start_decode = bitstring.find(start_sentinel);
 
     // If no start sentinel found, cancel processing
     if(start_decode == string::npos)
@@ -66,7 +66,7 @@ MagneticBitstringParser::parse(string& bitstring, string& result)
     start_decode += char_length;
 
     // Set starting point for searching the end sentinel
-    unsigned int end_decode = start_decode;
+    size_t end_decode = start_decode;
 
     // Find end of encoded string; ensure it's correct position
     do
@@ -86,7 +86,7 @@ MagneticBitstringParser::parse(string& bitstring, string& result)
     result.push_back(decode_char(start_sentinel));
 
     // Decoded character for character
-    for(unsigned int i = start_decode; i < end_decode + char_length; i += char_length)
+    for(size_t i = start_decode; i < end_decode + char_length; i += char_length)
     {
         // Extract bits
         string char_bits;
@@ -105,7 +105,7 @@ MagneticBitstringParser::parse(string& bitstring, string& result)
         result.push_back(decode_char(char_bits));
 
         // Update LRC
-        for(unsigned int i = 0; i < parity_bit; i++)
+        for(size_t i = 0; i < parity_bit; i++)
         {
             lrc[i] ^= char_bits[i] == '1' ? 1 : 0;
         }
@@ -113,7 +113,7 @@ MagneticBitstringParser::parse(string& bitstring, string& result)
 
     // Check for correct LRC
     string lrc_bits;
-    for(unsigned int i = 0; i < char_length; i++)
+    for(size_t i = 0; i < char_length; i++)
     {
         lrc_bits.push_back('0' + lrc[i]);
     }
@@ -131,7 +131,7 @@ MagneticBitstringParser::decode_char(string& bits)
 {
     unsigned char c = 48; // = '0'
 
-    for(unsigned int i = 0, value = 1;
+    for(size_t i = 0, value = 1;
         i < parity_bit;
         i++, value *= 2)
     {
@@ -146,7 +146,7 @@ MagneticBitstringParser::check_parity(string& bits)
 {
     unsigned int parity = 0;
 
-    for(unsigned int i = 0; i < parity_bit; i++)
+    for(size_t i = 0; i < parity_bit; i++)
     {
         if(bits[i] == '1')
         {
@@ -283,7 +283,7 @@ MCU::run(RtAudioCallback input_function, vector<sample_t>* b)
     }
 
     // Specify parameters of the audio stream
-    unsigned int buffer_frames = 512;
+    size_t buffer_frames = 512;
     unsigned int device_index = device_indexes[device_number];
     unsigned int sample_rate = 44100; // Default value if nothing else found
     sample_rate = greatest_sample_rate(device_index);
@@ -334,7 +334,7 @@ MCU::run(RtAudioCallback input_function, vector<sample_t>* b)
     get_dsp(sample_rate);
 
     // Extract samples
-    unsigned int samples = sample_end - sample_start;
+    size_t samples = sample_end - sample_start;
     vector<sample_t> sample_buffer(samples);
     copy(buffer->begin() + sample_start,
          buffer->begin() + sample_end,
@@ -434,7 +434,7 @@ void
 MCU::list_devices(vector<RtAudio::DeviceInfo>& dev, vector<int>& index)
 {
     // Get devices
-    for(unsigned int i = 0; i < adc.getDeviceCount(); i++)
+    for(size_t i = 0; i < adc.getDeviceCount(); i++)
     {
         RtAudio::DeviceInfo info = adc.getDeviceInfo(i);
 
@@ -483,7 +483,7 @@ MCU::print_devices(vector<RtAudio::DeviceInfo>& dev)
     cerr << "Current API: " << api_map[adc.getCurrentApi()] << endl;
 
     // Print every device
-    for(unsigned int i = 0; i < dev.size(); i++)
+    for(size_t i = 0; i < dev.size(); i++)
     {
         RtAudio::DeviceInfo info = dev[i];
 
@@ -502,7 +502,7 @@ MCU::greatest_sample_rate(int device_index)
 
     RtAudio::DeviceInfo info = adc.getDeviceInfo(device_index);
 
-    for(unsigned int i = 0; i < info.sampleRates.size(); i++)
+    for(size_t i = 0; i < info.sampleRates.size(); i++)
     {
         unsigned int rate = info.sampleRates[i];
 
@@ -523,7 +523,7 @@ MCU::print_max_level(unsigned int sample_rate)
     // Calculate maximal level
     sample_t last_level = 0;
     sample_t level;
-    for(unsigned int i = 0; i < MAX_TERM * sample_rate; i++)
+    for(size_t i = 0; i < MAX_TERM * sample_rate; i++)
     {
         // Wait if needed
         if(buffer->size() <= i)
@@ -586,7 +586,7 @@ MCU::get_dsp(unsigned int sample_rate)
     sample_end = sample_start;
 
     // Silence interval (in samples) indicating end of the sample
-    unsigned int silence_interval = (sample_rate * END_LENGTH) / 1000;
+    size_t silence_interval = (sample_rate * END_LENGTH) / 1000;
 
     // Loop until the end of the sample is found
     while(true)
@@ -615,7 +615,7 @@ MCU::get_dsp(unsigned int sample_rate)
         }
 
         // Check whether the supposed end of the sample is the real one
-        unsigned int silence_counter;
+        size_t silence_counter;
         for(silence_counter = 0;
             silence_counter < silence_interval;
             silence_counter++, buffer_index++)
@@ -644,10 +644,10 @@ MCU::get_dsp(unsigned int sample_rate)
 void
 MCU::decode_aiken_biphase(vector<sample_t>& input)
 {
-    const unsigned int input_size = input.size();
+    const size_t input_size = input.size();
 
     // Make all values absolute
-    for(unsigned int i = 0; i < input_size; i++)
+    for(size_t i = 0; i < input_size; i++)
     {
         if(input[i] < 0)
         {
@@ -656,10 +656,10 @@ MCU::decode_aiken_biphase(vector<sample_t>& input)
     }
 
     // Search for peaks
-    unsigned int peak_index = 0;
-    unsigned int old_peak_index = 0;
-    vector<unsigned int> peaks;
-    for(unsigned int i = 0; i < input_size; )
+    size_t peak_index = 0;
+    size_t old_peak_index = 0;
+    vector<size_t> peaks;
+    for(size_t i = 0; i < input_size; )
     {
         // Store peak index
         old_peak_index = peak_index;
@@ -679,7 +679,7 @@ MCU::decode_aiken_biphase(vector<sample_t>& input)
             }
         }
 
-        unsigned int peak_index_diff = peak_index - old_peak_index;
+        size_t peak_index_diff = peak_index - old_peak_index;
         if(peak_index_diff > 0)
         {
             peaks.push_back(peak_index_diff);
@@ -696,11 +696,11 @@ MCU::decode_aiken_biphase(vector<sample_t>& input)
 
     // Decode aiken bi-phase (decode bits based on intervals between peaks)
     sample_t zero = peaks[2];
-    const unsigned int peaks_size = peaks.size();
-    for(unsigned int i = 2; i < peaks_size - 1; i++)
+    const size_t peaks_size = peaks.size();
+    for(size_t i = 2; i < peaks_size - 1; i++)
     {
-        unsigned int interval0 = (FREQ_THRES * zero) / 100;
-        unsigned int interval1 = interval0 / 2;
+        size_t interval0 = (FREQ_THRES * zero) / 100;
+        size_t interval1 = interval0 / 2;
 
         if(peaks[i] < ((zero / 2) + interval1) &&
            peaks[i] > ((zero / 2) - interval1))
@@ -727,7 +727,7 @@ MCU::evaluate_max(void)
 {
     sample_t max = 0;
 
-    for(unsigned int i = 0; i < buffer->size(); i++)
+    for(size_t i = 0; i < buffer->size(); i++)
     {
         sample_t value = buffer->at(i);
         if(value > max)

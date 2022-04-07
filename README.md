@@ -1,6 +1,6 @@
 # Magnetic stripe Card Utility
 
-MCU (short for Magnetic stripe Card Utility) is a software for reading
+MCU (short for *Magnetic stripe Card Utility*) is a software for reading
 and decoding signals from an ultra-simple magnetic stripe card reader
 described in the **2600** magazine Volume 22, issue #1, in the article called
 *"Magnetic Stripe Reading"* on the page 28. This article is also republished

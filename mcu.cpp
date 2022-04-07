@@ -280,7 +280,7 @@ MCU::run(RtAudioCallback input_function, std::vector<sample_t>* b)
     }
 
     // Specify parameters of the audio stream
-    size_t buffer_frames = 512;
+    unsigned int buffer_frames = 512;
     unsigned int device_index = device_indexes[device_number];
     unsigned int sample_rate = 44100; // Default value if nothing else found
     sample_rate = greatest_sample_rate(device_index);

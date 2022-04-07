@@ -8,12 +8,8 @@ RTAUDIO_VERSION=4.1.0
 RTAUDIO_SRC=rtaudio-$(RTAUDIO_VERSION)
 INCLUDES=-I"." -I$(RTAUDIO_SRC) -I$(RTAUDIO_SRC)/include
 CFLAGS=$(INCLUDES) -O2 -c
+LDFLAGS=-s
 OBJS=mcu.o RtAudio.o
-
-ifeq ($(findstring CYGWIN,$(shell uname)), CYGWIN)
-CFLAGS+=-mno-cygwin
-LDFLAGS+=-mno-cygwin
-endif
 
 ifdef COMSPEC
 CFLAGS+=-D__WINDOWS_DS__

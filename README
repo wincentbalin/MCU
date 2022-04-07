@@ -26,27 +26,14 @@ under Linux (or any other UNIX) too.
 
 Prerequisites:
 
-0. Cygwin with MinGW compiler
+0. MinGW compiler (for example: https://nuwen.net/mingw.html)
 
 Steps:
 
-1. Get RtAudio library and unpack it into the directory with MCU sources
+1. Get RtAudio-4.1.0 library from https://github.com/thestk/rtaudio/releases/tag/4.1.0
+   and unpack it into the directory with MCU sources
 
-2. Move the Makefile_RtAudio into the RtAudio-*/tests directory
-
-2.1/2. If needed, choose MinGW compiler as the default one with
-
-       /usr/sbin/alternatives --config gcc
-
-3. Go to the RtAudio-*/tests and compile the RtAudio library with
-
-       make -f Makefile_RtAudio
-
-
-4. Go back to the directory with MCU sources. If needed, adjust
-   the version of RtAudio in the Makefile
-
-5. Type
+2. Type
 
       make
 

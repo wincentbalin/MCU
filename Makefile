@@ -11,19 +11,17 @@ CFLAGS=$(INCLUDES) -O2 -c
 LDFLAGS=-s
 OBJS=mcu.o RtAudio.o
 
-ifdef COMSPEC
+ifdef OS
 CFLAGS+=-D__WINDOWS_DS__
 LIBS=-lole32 -lwinmm -lWsock32 -ldsound -lstdc++ -lm
+RM=del
 else
 CFLAGS+=-D__LINUX_ALSA__
 LIBS=-lasound -lstdc++ -lm
+RM=rm -f
 endif
 
 all: mcu
-
-Debug: all
-
-Release: all
 
 mcu: $(OBJS)
 	$(CC) -o mcu $(LDFLAGS) $(OBJS) $(LIBS)
@@ -35,5 +33,5 @@ RtAudio.o:
 	$(CC) $(CFLAGS) $(RTAUDIO_SRC)/$*.cpp
 
 clean:
-	rm -f mcu mcu.exe *~ *.o
+	$(RM) mcu mcu.exe *~ *.o
 

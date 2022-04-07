@@ -296,7 +296,7 @@ MCU::run(RtAudioCallback input_function, std::vector<sample_t>* b)
                        sample_rate, &buffer_frames, input_function, NULL);
         adc.startStream();
     }
-    catch(RtError& e)
+    catch(RtAudioError& e)
     {
         std::cerr << std::endl << e.getMessage() << std::endl;
         cleanup();
@@ -743,7 +743,7 @@ MCU::cleanup(void)
     {
         adc.stopStream();
     }
-    catch(RtError& e)
+    catch(RtAudioError& e)
     {
         std::cerr << std::endl << e.getMessage() << std::endl;
         exit(EXIT_FAILURE);

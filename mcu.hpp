@@ -25,7 +25,7 @@
 
 
 // Version of the program
-#define VERSION 1.0
+#define VERSION 1.1
 
 // Initial silence threshold
 #define SILENCE_THRES 5000

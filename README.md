@@ -7,14 +7,14 @@ described in the **2600** magazine Volume 22, issue #1, in the article called
 at http://sephail.net/articles/magstripe/ .
 
 Technically, the application binds the [RTAudio library](https://github.com/thestk/rtaudio),
-needed for platform-independent audio I/O, with the routines from dab.c/dmsb.c
+needed for platform-independent audio I/O, with the routines from `dab.c`/`dmsb.c`
 files from the aforementioned article. The software is written in C++,
 as it is needed by RtAudio.
 
 ## Compiling
 
 Currently the program is trimmed to compile on Win* platform. Linux users
-may either work with the original dab.c/dmsb.c sources or make MCU compile
+may either work with the original `dab.c`/`dmsb.c` sources or make MCU compile
 under Linux (or any other UNIX) too.
 
 ### Prerequisites

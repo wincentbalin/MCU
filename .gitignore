@@ -1,7 +1,8 @@
 rtaudio-*
 *.o
+mcu.exe
+mcu
 .cproject
 .project
 .settings
 Default
-

@@ -12,8 +12,8 @@ described in the 2600 magazine Volume 22, issue #1,in the article called
 "Magnetic Stripe Reading" on the page 28. This article is also republished
 at http://sephail.net/articles/magstripe/ .
 
-Technically, the application binds the RTAudio library, needed for
-platform-independent audio I/O, with the routines from dab.c/dmsb.c
+Technically, the application binds the RTAudio library (https://github.com/thestk/rtaudio),
+needed for platform-independent audio I/O, with the routines from dab.c/dmsb.c
 files from the aforementioned article. The software is written in C++,
 as it is needed by RtAudio.
 
